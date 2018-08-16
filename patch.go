@@ -7,34 +7,51 @@ import (
     "syscall"
 )
 
-type Patch struct {
-    targetBytes []byte
-    double      *reflect.Value
+type Patches struct {
+    patches map[reflect.Value][]byte
 }
 
-type Patches struct {
-    patches map[reflect.Value]Patch
+func ApplyFunc(target, double interface{}) *Patches {
+    return New().ApplyFunc(target, double)
+}
+
+func ApplyMethod(target reflect.Type, methodName string, double interface{}) *Patches {
+    return New().ApplyMethod(target, methodName, double)
 }
 
 func New() *Patches {
-    return &Patches{make(map[reflect.Value]Patch)}
+    return &Patches{make(map[reflect.Value][]byte)}
 }
 
 func (this *Patches) ApplyFunc(target, double interface{}) *Patches {
     t := reflect.ValueOf(target)
     d := reflect.ValueOf(double)
-    this.check(t, d)
-    bytes := replace(*(*uintptr)(getPointer(t)), uintptr(getPointer(d)))
-    this.patches[t] = Patch{bytes, &d}
+    this.applyCore(t, d)
+    return this
+}
+
+func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double interface{}) *Patches {
+    m, ok := target.MethodByName(methodName);
+    if !ok {
+        panic("retrieve method by name failed")
+    }
+    d := reflect.ValueOf(double)
+    this.applyCore(m.Func, d)
     return this
 }
 
 func (this *Patches) Reset() {
-    for target, patch := range this.patches {
-        modifyBinary(*(*uintptr)(getPointer(target)), patch.targetBytes)
+    for target, bytes := range this.patches {
+        modifyBinary(*(*uintptr)(getPointer(target)), bytes)
         delete(this.patches, target)
     }
+}
 
+func (this *Patches) applyCore(target, double reflect.Value) {
+    this.check(target, double)
+    bytes := replace(*(*uintptr)(getPointer(target)), uintptr(getPointer(double)))
+    this.patches[target] = bytes
+    //fmt.Println("bytes:", bytes)
 }
 
 func (this *Patches) check(target, double reflect.Value) {
@@ -55,14 +72,10 @@ func (this *Patches) check(target, double reflect.Value) {
     }
 }
 
-func ApplyFunc(target, double interface{}) *Patches {
-    return New().ApplyFunc(target, double)
-}
-
 func replace(target, double uintptr) []byte {
-    data := jmpPrepare(double)
-    bytes := entryAddress(target, len(data))
-    modifyBinary(target, data)
+    code := buildJmpDirective(double)
+    bytes := entryAddress(target, len(code))
+    modifyBinary(target, code)
     return bytes
 }
 

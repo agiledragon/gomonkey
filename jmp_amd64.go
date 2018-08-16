@@ -1,6 +1,6 @@
 package gomonkey
 
-func jmpPrepare(double uintptr) []byte {
+func buildJmpDirective(double uintptr) []byte {
     d0 := byte(double)
     d1 := byte(double >> 8)
     d2 := byte(double >> 16)
