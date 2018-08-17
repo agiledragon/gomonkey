@@ -12,6 +12,7 @@ import (
 
 var (
     ErrActual = errors.New("actual")
+    outputExpect = "xxx-vethName100-yyy"
 )
 
 func Exec(cmd string, args ...string) (string, error) {
@@ -49,7 +50,6 @@ func Belong(points string, lines []string) bool {
 }
 
 func TestApplyFunc(t *testing.T) {
-    outputExpect := "xxx-vethName100-yyy"
     Convey("TestApplyFunc", t, func() {
 
         Convey("one func for succ", func() {

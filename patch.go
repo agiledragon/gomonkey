@@ -8,7 +8,7 @@ import (
 )
 
 type Patches struct {
-    patches map[reflect.Value][]byte
+    originals map[reflect.Value][]byte
 }
 
 func ApplyFunc(target, double interface{}) *Patches {
@@ -41,17 +41,16 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 }
 
 func (this *Patches) Reset() {
-    for target, bytes := range this.patches {
+    for target, bytes := range this.originals {
         modifyBinary(*(*uintptr)(getPointer(target)), bytes)
-        delete(this.patches, target)
+        delete(this.originals, target)
     }
 }
 
 func (this *Patches) applyCore(target, double reflect.Value) {
     this.check(target, double)
-    bytes := replace(*(*uintptr)(getPointer(target)), uintptr(getPointer(double)))
-    this.patches[target] = bytes
-    //fmt.Println("bytes:", bytes)
+    original := replace(*(*uintptr)(getPointer(target)), uintptr(getPointer(double)))
+    this.originals[target] = original
 }
 
 func (this *Patches) check(target, double reflect.Value) {
@@ -67,7 +66,7 @@ func (this *Patches) check(target, double reflect.Value) {
         panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
     }
 
-    if _, ok := this.patches[target]; ok {
+    if _, ok := this.originals[target]; ok {
         panic("patch has been existed")
     }
 }
@@ -75,8 +74,10 @@ func (this *Patches) check(target, double reflect.Value) {
 func replace(target, double uintptr) []byte {
     code := buildJmpDirective(double)
     bytes := entryAddress(target, len(code))
+    original := make([]byte, len(bytes))
+    copy(original, bytes)
     modifyBinary(target, code)
-    return bytes
+    return original
 }
 
 type value struct {
