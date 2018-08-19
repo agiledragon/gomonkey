@@ -5,6 +5,7 @@ import (
     . "github.com/smartystreets/goconvey/convey"
     "testing"
     "github.com/agiledragon/gomonkey/test/fake"
+    "encoding/json"
 )
 
 var (
@@ -47,6 +48,22 @@ func TestApplyFunc(t *testing.T) {
             So(output, ShouldEqual, outputExpect)
             flag := fake.Belong("", nil)
             So(flag, ShouldBeTrue)
+        })
+
+        Convey("input and output param", func() {
+            patches := ApplyFunc(json.Unmarshal, func(_ []byte, v interface{}) error {
+                p := v.(*map[int]int)
+                *p = make(map[int]int)
+                (*p)[1] = 2
+                (*p)[2] = 4
+                return nil
+            })
+            defer patches.Reset()
+            var m map[int]int
+            err := json.Unmarshal(nil, &m)
+            So(err, ShouldEqual, nil)
+            So(m[1], ShouldEqual, 2)
+            So(m[2], ShouldEqual, 4)
         })
     })
 }
