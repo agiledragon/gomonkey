@@ -48,7 +48,10 @@ func TestApplyMethod(t *testing.T) {
             patches := ApplyMethod(reflect.TypeOf(s), "Add", func(_ *fake.Slice, _ int) error {
                 return fake.ERR_ELEM_EXIST
             })
-            defer patches.Reset()
+            defer func() {
+                patches.Reset()
+                slice.Remove(3)
+            }()
             patches.ApplyMethod(reflect.TypeOf(s), "Remove", func(_ *fake.Slice, _ int) error {
                 return fake.ERR_ELEM_NT_EXIST
             })
@@ -66,7 +69,10 @@ func TestApplyMethod(t *testing.T) {
             patches := ApplyFunc(fake.Exec, func(_ string, _ ...string) (string, error) {
                 return outputExpect, nil
             })
-            defer patches.Reset()
+            defer func() {
+                patches.Reset()
+                slice.Remove(4)
+            }()
             patches.ApplyMethod(reflect.TypeOf(s), "Remove", func(_ *fake.Slice, _ int) error {
                 return fake.ERR_ELEM_NT_EXIST
             })
@@ -75,9 +81,8 @@ func TestApplyMethod(t *testing.T) {
             So(output, ShouldEqual, outputExpect)
             err = slice.Remove(1)
             So(err, ShouldEqual, fake.ERR_ELEM_NT_EXIST)
-            So(len(slice), ShouldEqual, 2)
-            So(slice[0], ShouldEqual, 3)
-            So(slice[1], ShouldEqual, 4)
+            So(len(slice), ShouldEqual, 1)
+            So(slice[0], ShouldEqual, 4)
         })
     })
 }
