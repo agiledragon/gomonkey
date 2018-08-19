@@ -45,13 +45,11 @@ func TestApplyMethod(t *testing.T) {
         Convey("two methods", func() {
             err := slice.Add(3)
             So(err, ShouldEqual, nil)
+            defer slice.Remove(3)
             patches := ApplyMethod(reflect.TypeOf(s), "Add", func(_ *fake.Slice, _ int) error {
                 return fake.ERR_ELEM_EXIST
             })
-            defer func() {
-                patches.Reset()
-                slice.Remove(3)
-            }()
+            defer patches.Reset()
             patches.ApplyMethod(reflect.TypeOf(s), "Remove", func(_ *fake.Slice, _ int) error {
                 return fake.ERR_ELEM_NT_EXIST
             })
@@ -66,13 +64,11 @@ func TestApplyMethod(t *testing.T) {
         Convey("one func and one method", func() {
             err := slice.Add(4)
             So(err, ShouldEqual, nil)
+            defer slice.Remove(4)
             patches := ApplyFunc(fake.Exec, func(_ string, _ ...string) (string, error) {
                 return outputExpect, nil
             })
-            defer func() {
-                patches.Reset()
-                slice.Remove(4)
-            }()
+            defer patches.Reset()
             patches.ApplyMethod(reflect.TypeOf(s), "Remove", func(_ *fake.Slice, _ int) error {
                 return fake.ERR_ELEM_NT_EXIST
             })
