@@ -54,36 +54,8 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 
 func (this *Patches) ApplyFuncSeq(target interface{}, outputs []Output) *Patches {
 	funcType := reflect.TypeOf(target)
-	if funcType.NumOut() != len(outputs[0].Values) {
-		panic(fmt.Sprintf("func type has %v return values, but only %v values provided as double",
-			funcType.NumOut(), len(outputs[0].Values)))
-	}
-
-	slice := make([]Values, 0)
-	for _, output := range outputs {
-		t := 0
-		if output.Times <= 1 {
-			t = 1
-		} else {
-			t = output.Times
-		}
-		for j := 0; j < t; j++ {
-			slice = append(slice, output.Values)
-		}
-	}
-
 	t := reflect.ValueOf(target)
-
-	i := 0
-	len := len(slice)
-	d := reflect.MakeFunc(funcType, func(_ []reflect.Value) []reflect.Value {
-		if i < len {
-			i++
-			return getResultValues(funcType, slice[i-1]...)
-		}
-		panic("double seq is less than call seq")
-	})
-
+	d := getDoubleFunc(funcType, outputs)
 	return this.applyCore(t, d)
 }
 
@@ -92,34 +64,7 @@ func (this *Patches) ApplyMethodSeq(target reflect.Type, methodName string, outp
 	if !ok {
 		panic("retrieve method by name failed")
 	}
-	if m.Type.NumOut() != len(outputs[0].Values) {
-		panic(fmt.Sprintf("func type has %v return values, but only %v values provided as double",
-			target.NumOut(), len(outputs[0].Values)))
-	}
-
-	slice := make([]Values, 0)
-	for _, output := range outputs {
-		t := 0
-		if output.Times <= 1 {
-			t = 1
-		} else {
-			t = output.Times
-		}
-		for j := 0; j < t; j++ {
-			slice = append(slice, output.Values)
-		}
-	}
-
-	i := 0
-	len := len(slice)
-	d := reflect.MakeFunc(m.Type, func(_ []reflect.Value) []reflect.Value {
-		if i < len {
-			i++
-			return getResultValues(m.Type, slice[i-1]...)
-		}
-		panic("double seq is less than call seq")
-	})
-
+	d := getDoubleFunc(m.Type, outputs)
 	return this.applyCore(m.Func, d)
 }
 
@@ -162,6 +107,36 @@ func replace(target, double uintptr) []byte {
 	copy(original, bytes)
 	modifyBinary(target, code)
 	return original
+}
+
+func getDoubleFunc(funcType reflect.Type, outputs []Output) reflect.Value {
+	if funcType.NumOut() != len(outputs[0].Values) {
+		panic(fmt.Sprintf("func type has %v return values, but only %v values provided as double",
+			funcType.NumOut(), len(outputs[0].Values)))
+	}
+
+	slice := make([]Values, 0)
+	for _, output := range outputs {
+		t := 0
+		if output.Times <= 1 {
+			t = 1
+		} else {
+			t = output.Times
+		}
+		for j := 0; j < t; j++ {
+			slice = append(slice, output.Values)
+		}
+	}
+
+	i := 0
+	len := len(slice)
+	return reflect.MakeFunc(funcType, func(_ []reflect.Value) []reflect.Value {
+		if i < len {
+			i++
+			return getResultValues(funcType, slice[i-1]...)
+		}
+		panic("double seq is less than call seq")
+	})
 }
 
 func getResultValues(funcType reflect.Type, results ...interface{}) []reflect.Value {
