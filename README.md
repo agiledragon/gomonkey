@@ -13,9 +13,9 @@ gomonkey is a library to make monkey patching in unit tests easy.
 + gomonkey should work on any amd64 system.
 
 ## Installation
-------------
-	$ go get github.com/agiledragon/gomonkey
-	
+```go
+$ go get github.com/agiledragon/gomonkey
+```
 ## Using gomonkey
 
 The following just make some tests as typical examples.

@@ -40,8 +40,7 @@ func New() *Patches {
 func (this *Patches) ApplyFunc(target, double interface{}) *Patches {
 	t := reflect.ValueOf(target)
 	d := reflect.ValueOf(double)
-	this.applyCore(t, d)
-	return this
+	return this.applyCore(t, d)
 }
 
 func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double interface{}) *Patches {
@@ -50,13 +49,42 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 		panic("retrieve method by name failed")
 	}
 	d := reflect.ValueOf(double)
-	this.applyCore(m.Func, d)
-	return this
+	return this.applyCore(m.Func, d)
 }
 
 func (this *Patches) ApplyFuncSeq(target interface{}, doubles []Output) *Patches {
-	// TODO
-	return this
+	funcType := reflect.TypeOf(target)
+	if funcType.NumOut() != len(doubles[0].Values) {
+		panic(fmt.Sprintf("func type has %v return values, but only %v values provided as double",
+			funcType.NumOut(), len(doubles[0].Values)))
+	}
+
+	slice := make([]Values, 0)
+	for _, double := range doubles {
+		t := 0
+		if double.Times <= 1 {
+			t = 1
+		} else {
+			t = double.Times
+		}
+		for j := 0; j < t; j++ {
+			slice = append(slice, double.Values)
+		}
+	}
+
+	t := reflect.ValueOf(target)
+
+	i := 0
+	len := len(slice)
+	d := reflect.MakeFunc(funcType, func(_ []reflect.Value) []reflect.Value {
+		if i < len {
+			i++
+			return getResultValues(funcType, slice[i-1]...)
+		}
+		panic("double seq is less than call seq")
+	})
+
+	return this.applyCore(t, d)
 }
 
 func (this *Patches) ApplyMethodSeq(target reflect.Type, methodName string, doubles []Output) *Patches {
@@ -71,10 +99,11 @@ func (this *Patches) Reset() {
 	}
 }
 
-func (this *Patches) applyCore(target, double reflect.Value) {
+func (this *Patches) applyCore(target, double reflect.Value) *Patches {
 	this.check(target, double)
 	original := replace(*(*uintptr)(getPointer(target)), uintptr(getPointer(double)))
 	this.originals[target] = original
+	return this
 }
 
 func (this *Patches) check(target, double reflect.Value) {
@@ -102,6 +131,22 @@ func replace(target, double uintptr) []byte {
 	copy(original, bytes)
 	modifyBinary(target, code)
 	return original
+}
+
+func getResultValues(funcType reflect.Type, results ...interface{}) []reflect.Value {
+	var resultValues []reflect.Value
+	for i, r := range results {
+		var resultValue reflect.Value
+		if r == nil {
+			resultValue = reflect.Zero(funcType.Out(i))
+		} else {
+			v := reflect.New(funcType.Out(i))
+			v.Elem().Set(reflect.ValueOf(r))
+			resultValue = v.Elem()
+		}
+		resultValues = append(resultValues, resultValue)
+	}
+	return resultValues
 }
 
 type value struct {

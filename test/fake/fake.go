@@ -87,3 +87,8 @@ func (this* Slice) Remove(elem int) error {
     fmt.Printf("Slice: Remove elem: %v succ\n", elem)
     return nil
 }
+
+func ReadLeaf(url string)(string, error) {
+    output := fmt.Sprintf("%s, %s!", "Hello", "World")
+    return output, nil
+}
