@@ -88,7 +88,16 @@ func (this* Slice) Remove(elem int) error {
     return nil
 }
 
-func ReadLeaf(url string)(string, error) {
+func ReadLeaf(url string) (string, error) {
+    output := fmt.Sprintf("%s, %s!", "Hello", "World")
+    return output, nil
+}
+
+type Etcd struct {
+
+}
+
+func (this *Etcd) Retrieve(url string) (string, error) {
     output := fmt.Sprintf("%s, %s!", "Hello", "World")
     return output, nil
 }
