@@ -3,14 +3,14 @@
 gomonkey is a library to make monkey patching in unit tests easy.
 
 ## Features
-+ support functions
-+ support member methods
-+ support a specified sequence values for a function
-+ support a specified sequence values for a method
++ support a patch for a function
++ support a patch for a member method
++ support patches of a specified sequence for a function
++ support patches of a specified sequence for a member method
 
 ## Notes
 + gomonkey fails to patch a function if inlining is enabled, please running your tests with inlining disabled by adding the command line argument that is `-gcflags=-l`.
-+ gomonkey support amd64 temporarily.
++ gomonkey should work on any amd64 system.
 
 ## Installation
 ------------
@@ -95,7 +95,7 @@ func TestApplyFunc(t *testing.T) {
 
 ```
 
-### ApplyFunc
+### ApplyMethod
 
 ```go
 import (
@@ -183,10 +183,10 @@ func TestApplyMethod(t *testing.T) {
 
 ```
 
-### ApplyFunc
+### ApplyFuncSeq
 
 //TO DO
 
-### ApplyFunc
+### ApplyMethodSeq
 
 //TO DO
