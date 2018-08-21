@@ -9,6 +9,7 @@ import (
 
 type Patches struct {
 	originals map[reflect.Value][]byte
+	values map[reflect.Value]reflect.Value
 }
 
 type Params []interface{}
@@ -25,6 +26,10 @@ func ApplyMethod(target reflect.Type, methodName string, double interface{}) *Pa
 	return New().ApplyMethod(target, methodName, double)
 }
 
+func ApplyGlobalVar(target, double interface{}) *Patches {
+	return New().ApplyGlobalVar(target, double)
+}
+
 func ApplyFuncSeq(target interface{}, outputs []OutputCell) *Patches {
 	return New().ApplyFuncSeq(target, outputs)
 }
@@ -34,7 +39,7 @@ func ApplyMethodSeq(target reflect.Type, methodName string, outputs []OutputCell
 }
 
 func New() *Patches {
-	return &Patches{make(map[reflect.Value][]byte)}
+	return &Patches{originals: make(map[reflect.Value][]byte), values: make(map[reflect.Value]reflect.Value)}
 }
 
 func (this *Patches) ApplyFunc(target, double interface{}) *Patches {
@@ -50,6 +55,18 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 	}
 	d := reflect.ValueOf(double)
 	return this.applyCore(m.Func, d)
+}
+
+func (this *Patches) ApplyGlobalVar(target, double interface{}) *Patches {
+	t := reflect.ValueOf(target)
+	if t.Type().Kind() != reflect.Ptr {
+		panic("target is expected to be a pointer")
+	}
+
+	this.values[t] = reflect.ValueOf(t.Elem().Interface())
+	d := reflect.ValueOf(double)
+	t.Elem().Set(d)
+	return this
 }
 
 func (this *Patches) ApplyFuncSeq(target interface{}, outputs []OutputCell) *Patches {
@@ -72,6 +89,10 @@ func (this *Patches) Reset() {
 	for target, bytes := range this.originals {
 		modifyBinary(*(*uintptr)(getPointer(target)), bytes)
 		delete(this.originals, target)
+	}
+
+	for target, variable := range this.values {
+		target.Elem().Set(variable)
 	}
 }
 
@@ -155,13 +176,13 @@ func getResultValues(funcType reflect.Type, results ...interface{}) []reflect.Va
 	return resultValues
 }
 
-type value struct {
+type funcValue struct {
 	_ uintptr
 	p unsafe.Pointer
 }
 
 func getPointer(v reflect.Value) unsafe.Pointer {
-	return (*value)(unsafe.Pointer(&v)).p
+	return (*funcValue)(unsafe.Pointer(&v)).p
 }
 
 func entryAddress(p uintptr, l int) []byte {
