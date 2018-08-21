@@ -3,13 +3,17 @@
 gomonkey is a library to make monkey patching in unit tests easy.
 
 ## Features
+
 + support a patch for a function
 + support a patch for a member method
++ support a patch for a global variable
++ support a patch for a function variable
 + support patches of a specified sequence for a function
 + support patches of a specified sequence for a member method
++ support patches of a specified sequence for a function variable
 
 ## Notes
-+ gomonkey fails to patch a function if inlining is enabled, please running your tests with inlining disabled by adding the command line argument that is `-gcflags=-l`.
++ gomonkey fails to patch a function or a member method if inlining is enabled, please running your tests with inlining disabled by adding the command line argument that is `-gcflags=-l`.
 + gomonkey should work on any amd64 system.
 
 ## Installation
@@ -183,6 +187,19 @@ func TestApplyMethod(t *testing.T) {
 
 ```
 
+## ApplyGlobalVar
+
+```go
+// TO DO
+```
+
+## ApplyFuncVar
+
+```go
+// TO DO
+```
+
+
 ### ApplyFuncSeq
 
 ```go
@@ -200,10 +217,10 @@ func TestApplyFuncSeq(t *testing.T) {
             info1 := "hello cpp"
             info2 := "hello golang"
             info3 := "hello gomonkey"
-            outputs := []Output{
-                {Values: Values{info1, nil}},
-                {Values: Values{info2, nil}},
-                {Values: Values{info3, nil}},
+            outputs := []OutputCell{
+                {Values: Params{info1, nil}},
+                {Values: Params{info2, nil}},
+                {Values: Params{info3, nil}},
             }
             patches := ApplyFuncSeq(fake.ReadLeaf, outputs)
             defer patches.Reset()
@@ -220,9 +237,9 @@ func TestApplyFuncSeq(t *testing.T) {
 
         Convey("retry succ util the third times", func() {
             info1 := "hello cpp"
-            outputs := []Output{
-                {Values: Values{"", fake.ErrActual}, Times: 2},
-                {Values: Values{info1, nil}},
+            outputs := []OutputCell{
+                {Values: Params{"", fake.ErrActual}, Times: 2},
+                {Values: Params{info1, nil}},
             }
             patches := ApplyFuncSeq(fake.ReadLeaf, outputs)
             defer patches.Reset()
@@ -237,9 +254,9 @@ func TestApplyFuncSeq(t *testing.T) {
 
         Convey("batch operations failed on the third time", func() {
             info1 := "hello gomonkey"
-            outputs := []Output{
-                {Values: Values{info1, nil}, Times: 2},
-                {Values: Values{"", fake.ErrActual}},
+            outputs := []OutputCell{
+                {Values: Params{info1, nil}, Times: 2},
+                {Values: Params{"", fake.ErrActual}},
             }
             patches := ApplyFuncSeq(fake.ReadLeaf, outputs)
             defer patches.Reset()
@@ -255,6 +272,7 @@ func TestApplyFuncSeq(t *testing.T) {
 
     })
 }
+
 
 ```
 
@@ -277,10 +295,10 @@ func TestApplyMethodSeq(t *testing.T) {
             info1 := "hello cpp"
             info2 := "hello golang"
             info3 := "hello gomonkey"
-            outputs := []Output{
-                {Values: Values{info1, nil}},
-                {Values: Values{info2, nil}},
-                {Values: Values{info3, nil}},
+            outputs := []OutputCell{
+                {Values: Params{info1, nil}},
+                {Values: Params{info2, nil}},
+                {Values: Params{info3, nil}},
             }
             patches := ApplyMethodSeq(reflect.TypeOf(e), "Retrieve", outputs)
             defer patches.Reset()
@@ -297,9 +315,9 @@ func TestApplyMethodSeq(t *testing.T) {
 
         Convey("retry succ util the third times", func() {
             info1 := "hello cpp"
-            outputs := []Output{
-                {Values: Values{"", fake.ErrActual}, Times: 2},
-                {Values: Values{info1, nil}},
+            outputs := []OutputCell{
+                {Values: Params{"", fake.ErrActual}, Times: 2},
+                {Values: Params{info1, nil}},
             }
             patches := ApplyMethodSeq(reflect.TypeOf(e), "Retrieve", outputs)
             defer patches.Reset()
@@ -314,9 +332,9 @@ func TestApplyMethodSeq(t *testing.T) {
 
         Convey("batch operations failed on the third time", func() {
             info1 := "hello gomonkey"
-            outputs := []Output{
-                {Values: Values{info1, nil}, Times: 2},
-                {Values: Values{"", fake.ErrActual}},
+            outputs := []OutputCell{
+                {Values: Params{info1, nil}, Times: 2},
+                {Values: Params{"", fake.ErrActual}},
             }
             patches := ApplyMethodSeq(reflect.TypeOf(e), "Retrieve", outputs)
             defer patches.Reset()
@@ -333,4 +351,11 @@ func TestApplyMethodSeq(t *testing.T) {
     })
 }
 
+
+```
+
+## ApplyFuncVarSeq
+
+```go
+// TO DO
 ```
