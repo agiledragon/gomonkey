@@ -11,9 +11,9 @@ type Patches struct {
 	originals map[reflect.Value][]byte
 }
 
-type Values []interface{}
-type Output struct {
-	Values Values
+type Params []interface{}
+type OutputCell struct {
+	Values Params
 	Times  int
 }
 
@@ -25,11 +25,11 @@ func ApplyMethod(target reflect.Type, methodName string, double interface{}) *Pa
 	return New().ApplyMethod(target, methodName, double)
 }
 
-func ApplyFuncSeq(target interface{}, outputs []Output) *Patches {
+func ApplyFuncSeq(target interface{}, outputs []OutputCell) *Patches {
 	return New().ApplyFuncSeq(target, outputs)
 }
 
-func ApplyMethodSeq(target reflect.Type, methodName string, outputs []Output) *Patches {
+func ApplyMethodSeq(target reflect.Type, methodName string, outputs []OutputCell) *Patches {
 	return New().ApplyMethodSeq(target, methodName, outputs)
 }
 
@@ -52,14 +52,14 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 	return this.applyCore(m.Func, d)
 }
 
-func (this *Patches) ApplyFuncSeq(target interface{}, outputs []Output) *Patches {
+func (this *Patches) ApplyFuncSeq(target interface{}, outputs []OutputCell) *Patches {
 	funcType := reflect.TypeOf(target)
 	t := reflect.ValueOf(target)
 	d := getDoubleFunc(funcType, outputs)
 	return this.applyCore(t, d)
 }
 
-func (this *Patches) ApplyMethodSeq(target reflect.Type, methodName string, outputs []Output) *Patches {
+func (this *Patches) ApplyMethodSeq(target reflect.Type, methodName string, outputs []OutputCell) *Patches {
 	m, ok := target.MethodByName(methodName)
 	if !ok {
 		panic("retrieve method by name failed")
@@ -109,13 +109,13 @@ func replace(target, double uintptr) []byte {
 	return original
 }
 
-func getDoubleFunc(funcType reflect.Type, outputs []Output) reflect.Value {
+func getDoubleFunc(funcType reflect.Type, outputs []OutputCell) reflect.Value {
 	if funcType.NumOut() != len(outputs[0].Values) {
 		panic(fmt.Sprintf("func type has %v return values, but only %v values provided as double",
 			funcType.NumOut(), len(outputs[0].Values)))
 	}
 
-	slice := make([]Values, 0)
+	slice := make([]Params, 0)
 	for _, output := range outputs {
 		t := 0
 		if output.Times <= 1 {
