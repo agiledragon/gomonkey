@@ -5,17 +5,12 @@ import (
     "strings"
     "errors"
     "os/exec"
-    "encoding/json"
 )
 
 var (
     ErrActual = errors.New("actual")
     ERR_ELEM_EXIST = errors.New("elem already exist")
     ERR_ELEM_NT_EXIST = errors.New("elem not exist")
-)
-
-var (
-    Marshal = json.Marshal
 )
 
 func Exec(cmd string, args ...string) (string, error) {
@@ -106,3 +101,8 @@ func (this *Etcd) Retrieve(url string) (string, error) {
     output := fmt.Sprintf("%s, %s!", "Hello", "World")
     return output, nil
 }
+
+var Marshal = func(v interface{}) ([]byte, error) {
+    return nil, nil
+}
+
