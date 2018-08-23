@@ -42,6 +42,10 @@ func ApplyMethodSeq(target reflect.Type, methodName string, outputs []OutputCell
 	return create().ApplyMethodSeq(target, methodName, outputs)
 }
 
+func ApplyFuncVarSeq(target interface{}, outputs []OutputCell) *Patches {
+	return create().ApplyFuncVarSeq(target, outputs)
+}
+
 func create() *Patches {
 	return &Patches{originals: make(map[reflect.Value][]byte), values: make(map[reflect.Value]reflect.Value)}
 }
@@ -64,7 +68,7 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 func (this *Patches) ApplyGlobalVar(target, double interface{}) *Patches {
 	t := reflect.ValueOf(target)
 	if t.Type().Kind() != reflect.Ptr {
-		panic("target is expected to be a pointer")
+		panic("target is not a pointer")
 	}
 
 	this.values[t] = reflect.ValueOf(t.Elem().Interface())
@@ -75,10 +79,10 @@ func (this *Patches) ApplyGlobalVar(target, double interface{}) *Patches {
 
 func (this *Patches) ApplyFuncVar(target, double interface{}) *Patches {
 	t := reflect.ValueOf(target)
-	if t.Kind() != reflect.Ptr {
+	d := reflect.ValueOf(double)
+	if t.Type().Kind() != reflect.Ptr {
 		panic("target is not a pointer")
 	}
-	d := reflect.ValueOf(double)
 	this.check(t.Elem(), d)
 	return this.ApplyGlobalVar(target, double)
 }
@@ -97,6 +101,20 @@ func (this *Patches) ApplyMethodSeq(target reflect.Type, methodName string, outp
 	}
 	d := getDoubleFunc(m.Type, outputs)
 	return this.applyCore(m.Func, d)
+}
+
+func (this *Patches) ApplyFuncVarSeq(target interface{}, outputs []OutputCell) *Patches {
+	t := reflect.ValueOf(target)
+	if t.Type().Kind() != reflect.Ptr {
+		panic("target is not a pointer")
+	}
+	if t.Elem().Kind() != reflect.Func {
+		panic("target is not a func")
+	}
+
+	funcType := reflect.TypeOf(target).Elem()
+	double := getDoubleFunc(funcType, outputs).Interface()
+	return this.ApplyGlobalVar(target, double)
 }
 
 func (this *Patches) Reset() {
