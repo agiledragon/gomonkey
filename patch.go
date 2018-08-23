@@ -19,26 +19,30 @@ type OutputCell struct {
 }
 
 func ApplyFunc(target, double interface{}) *Patches {
-	return New().ApplyFunc(target, double)
+	return create().ApplyFunc(target, double)
 }
 
 func ApplyMethod(target reflect.Type, methodName string, double interface{}) *Patches {
-	return New().ApplyMethod(target, methodName, double)
+	return create().ApplyMethod(target, methodName, double)
 }
 
 func ApplyGlobalVar(target, double interface{}) *Patches {
-	return New().ApplyGlobalVar(target, double)
+	return create().ApplyGlobalVar(target, double)
+}
+
+func ApplyFuncVar(target, double interface{}) *Patches {
+	return create().ApplyFuncVar(target, double)
 }
 
 func ApplyFuncSeq(target interface{}, outputs []OutputCell) *Patches {
-	return New().ApplyFuncSeq(target, outputs)
+	return create().ApplyFuncSeq(target, outputs)
 }
 
 func ApplyMethodSeq(target reflect.Type, methodName string, outputs []OutputCell) *Patches {
-	return New().ApplyMethodSeq(target, methodName, outputs)
+	return create().ApplyMethodSeq(target, methodName, outputs)
 }
 
-func New() *Patches {
+func create() *Patches {
 	return &Patches{originals: make(map[reflect.Value][]byte), values: make(map[reflect.Value]reflect.Value)}
 }
 
@@ -67,6 +71,16 @@ func (this *Patches) ApplyGlobalVar(target, double interface{}) *Patches {
 	d := reflect.ValueOf(double)
 	t.Elem().Set(d)
 	return this
+}
+
+func (this *Patches) ApplyFuncVar(target, double interface{}) *Patches {
+	t := reflect.ValueOf(target)
+	if t.Kind() != reflect.Ptr {
+		panic("target is not a pointer")
+	}
+	d := reflect.ValueOf(double)
+	this.check(t.Elem(), d)
+	return this.ApplyGlobalVar(target, double)
 }
 
 func (this *Patches) ApplyFuncSeq(target interface{}, outputs []OutputCell) *Patches {
@@ -98,6 +112,9 @@ func (this *Patches) Reset() {
 
 func (this *Patches) applyCore(target, double reflect.Value) *Patches {
 	this.check(target, double)
+	if _, ok := this.originals[target]; ok {
+		panic("patch has been existed")
+	}
 	original := replace(*(*uintptr)(getPointer(target)), uintptr(getPointer(double)))
 	this.originals[target] = original
 	return this
@@ -114,10 +131,6 @@ func (this *Patches) check(target, double reflect.Value) {
 
 	if target.Type() != double.Type() {
 		panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
-	}
-
-	if _, ok := this.originals[target]; ok {
-		panic("patch has been existed")
 	}
 }
 
