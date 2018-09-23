@@ -486,7 +486,7 @@ func TestApplyFuncVarSeq(t *testing.T) {
 ## NewPatches
 
 ```go
-mport (
+import (
     . "github.com/agiledragon/gomonkey"
     . "github.com/smartystreets/goconvey/convey"
     "testing"
