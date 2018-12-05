@@ -224,22 +224,6 @@ func entryAddress(p uintptr, l int) []byte {
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{Data: p, Len: l, Cap: l}))
 }
 
-func modifyBinary(target uintptr, bytes []byte) {
-	function := entryAddress(target, len(bytes))
-
-	page := entryAddress(pageStart(target), syscall.Getpagesize())
-	err := syscall.Mprotect(page, syscall.PROT_READ|syscall.PROT_WRITE|syscall.PROT_EXEC)
-	if err != nil {
-		panic(err)
-	}
-	copy(function, bytes)
-
-	err = syscall.Mprotect(page, syscall.PROT_READ|syscall.PROT_EXEC)
-	if err != nil {
-		panic(err)
-	}
-}
-
 func pageStart(ptr uintptr) uintptr {
 	return ptr & ^(uintptr(syscall.Getpagesize() - 1))
 }
