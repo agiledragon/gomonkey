@@ -8,9 +8,9 @@ import (
 )
 
 var (
-    ErrActual = errors.New("actual")
-    ERR_ELEM_EXIST = errors.New("elem already exist")
-    ERR_ELEM_NT_EXIST = errors.New("elem not exist")
+    ErrActual       = errors.New("actual")
+    ErrElemExsit    = errors.New("elem already exist")
+    ErrElemNotExsit = errors.New("elem not exist")
 )
 
 func Exec(cmd string, args ...string) (string, error) {
@@ -58,7 +58,7 @@ func (this* Slice) Add(elem int) error {
     for _, v := range *this {
         if v == elem {
             fmt.Printf("Slice: Add elem: %v already exist\n", elem)
-            return ERR_ELEM_EXIST
+            return ErrElemExsit
         }
     }
     *this = append(*this, elem)
@@ -82,7 +82,7 @@ func (this* Slice) Remove(elem int) error {
     }
     if !found {
         fmt.Printf("Slice: Remove elem: %v not exist\n", elem)
-        return ERR_ELEM_NT_EXIST
+        return ErrElemNotExsit
     }
     fmt.Printf("Slice: Remove elem: %v succ\n", elem)
     return nil

@@ -32,11 +32,11 @@ func TestApplyMethod(t *testing.T) {
             err := slice.Add(2)
             So(err, ShouldEqual, nil)
             patches := ApplyMethod(reflect.TypeOf(s), "Add", func(_ *fake.Slice, _ int) error {
-                return fake.ERR_ELEM_EXIST
+                return fake.ErrElemExsit
             })
             defer patches.Reset()
             err = slice.Add(1)
-            So(err, ShouldEqual, fake.ERR_ELEM_EXIST)
+            So(err, ShouldEqual, fake.ErrElemExsit)
             err = slice.Remove(2)
             So(err, ShouldEqual, nil)
             So(len(slice), ShouldEqual, 0)
@@ -47,16 +47,16 @@ func TestApplyMethod(t *testing.T) {
             So(err, ShouldEqual, nil)
             defer slice.Remove(3)
             patches := ApplyMethod(reflect.TypeOf(s), "Add", func(_ *fake.Slice, _ int) error {
-                return fake.ERR_ELEM_EXIST
+                return fake.ErrElemExsit
             })
             defer patches.Reset()
             patches.ApplyMethod(reflect.TypeOf(s), "Remove", func(_ *fake.Slice, _ int) error {
-                return fake.ERR_ELEM_NT_EXIST
+                return fake.ErrElemNotExsit
             })
             err = slice.Add(2)
-            So(err, ShouldEqual, fake.ERR_ELEM_EXIST)
+            So(err, ShouldEqual, fake.ErrElemExsit)
             err = slice.Remove(1)
-            So(err, ShouldEqual, fake.ERR_ELEM_NT_EXIST)
+            So(err, ShouldEqual, fake.ErrElemNotExsit)
             So(len(slice), ShouldEqual, 1)
             So(slice[0], ShouldEqual, 3)
         })
@@ -70,13 +70,13 @@ func TestApplyMethod(t *testing.T) {
             })
             defer patches.Reset()
             patches.ApplyMethod(reflect.TypeOf(s), "Remove", func(_ *fake.Slice, _ int) error {
-                return fake.ERR_ELEM_NT_EXIST
+                return fake.ErrElemNotExsit
             })
             output, err := fake.Exec("", "")
             So(err, ShouldEqual, nil)
             So(output, ShouldEqual, outputExpect)
             err = slice.Remove(1)
-            So(err, ShouldEqual, fake.ERR_ELEM_NT_EXIST)
+            So(err, ShouldEqual, fake.ErrElemNotExsit)
             So(len(slice), ShouldEqual, 1)
             So(slice[0], ShouldEqual, 4)
         })
