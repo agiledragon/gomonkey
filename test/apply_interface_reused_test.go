@@ -5,17 +5,17 @@ import (
     "github.com/agiledragon/gomonkey/test/fake"
     . "github.com/smartystreets/goconvey/convey"
     "reflect"
-	"testing"
+    "testing"
 )
 
 func TestApplyInterfaceReused(t *testing.T) {
-	e := &fake.Etcd{}
-	
+    e := &fake.Etcd{}
+    
     Convey("TestApplyInterfaceReused", t, func() {
-		patches := ApplyFunc(fake.NewDb, func(_ string) fake.Db {
-			return e
-		})
-		defer patches.Reset()
+        patches := ApplyFunc(fake.NewDb, func(_ string) fake.Db {
+            return e
+        })
+        defer patches.Reset()
 
         Convey("TestApplyInterface", func() {
             
