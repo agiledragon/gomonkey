@@ -16,18 +16,18 @@ func TestApplyInterfaceReused(t *testing.T) {
             return e
         })
         defer patches.Reset()
+        db := fake.NewDb("mysql")
 
         Convey("TestApplyInterface", func() {
             
-            patchForInterface := "support a patch for a interface"
+            info := "hello interface"
             patches.ApplyMethod(reflect.TypeOf(e), "Retrieve",
                 func(_ *fake.Etcd, _ string) (string, error) {
-                    return patchForInterface, nil
+                    return info, nil
                 })
-            db := fake.NewDb("mysql")
             output, err := db.Retrieve("")
             So(err, ShouldEqual, nil)
-            So(patchForInterface, ShouldEqual, output)
+            So(info, ShouldEqual, output)
         })
 
         Convey("TestApplyInterfaceSeq", func() {
@@ -40,7 +40,6 @@ func TestApplyInterfaceReused(t *testing.T) {
                 {Values: Params{info3, nil}},
             }
             patches.ApplyMethodSeq(reflect.TypeOf(e), "Retrieve", outputs)
-            db := fake.NewDb("mysql")
             output, err := db.Retrieve("")
             So(err, ShouldEqual, nil)
             So(output, ShouldEqual, info1)
