@@ -11,6 +11,8 @@ gomonkey is a library to make monkey patching in unit tests easy.
 + support patches of a specified sequence for a function
 + support patches of a specified sequence for a member method
 + support patches of a specified sequence for a function variable
++ support a patch for a interface
++ support patches of a specified sequence for a interface
 
 ## Notes
 + gomonkey fails to patch a function or a member method if inlining is enabled, please running your tests with inlining disabled by adding the command line argument that is `-gcflags=-l`(below go1.10) or `-gcflags=all=-l`(go1.10 and above).
