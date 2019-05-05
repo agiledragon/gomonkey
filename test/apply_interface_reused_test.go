@@ -19,7 +19,6 @@ func TestApplyInterfaceReused(t *testing.T) {
         db := fake.NewDb("mysql")
 
         Convey("TestApplyInterface", func() {
-            
             info := "hello interface"
             patches.ApplyMethod(reflect.TypeOf(e), "Retrieve",
                 func(_ *fake.Etcd, _ string) (string, error) {
