@@ -5,18 +5,20 @@ import (
     "github.com/agiledragon/gomonkey/test/fake"
     . "github.com/smartystreets/goconvey/convey"
     "reflect"
-    "testing"
+	"testing"
 )
 
 func TestApplyInterfaceReused(t *testing.T) {
-
+	e := &fake.Etcd{}
+	
     Convey("TestApplyInterfaceReused", t, func() {
-        e := &fake.Etcd{}
+		patches := ApplyFunc(fake.NewDb, func(_ string) fake.Db {
+			return e
+		})
+		defer patches.Reset()
+
         Convey("TestApplyInterface", func() {
-            patches := ApplyFunc(fake.NewDb, func(_ string) fake.Db {
-                return e
-            })
-            defer patches.Reset()
+            
             patchForInterface := "support a patch for a interface"
             patches.ApplyMethod(reflect.TypeOf(e), "Retrieve",
                 func(_ *fake.Etcd, _ string) (string, error) {
@@ -29,11 +31,6 @@ func TestApplyInterfaceReused(t *testing.T) {
         })
 
         Convey("TestApplyInterfaceSeq", func() {
-            e := &fake.Etcd{}
-            patches := ApplyFunc(fake.NewDb, func(_ string) fake.Db {
-                return e
-            })
-            defer patches.Reset()
             info1 := "hello cpp"
             info2 := "hello golang"
             info3 := "hello gomonkey"
