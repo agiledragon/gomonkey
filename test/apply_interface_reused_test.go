@@ -26,7 +26,7 @@ func TestApplyInterfaceReused(t *testing.T) {
                 })
             output, err := db.Retrieve("")
             So(err, ShouldEqual, nil)
-            So(info, ShouldEqual, output)
+            So(output, ShouldEqual, info)
         })
 
         Convey("TestApplyInterfaceSeq", func() {
