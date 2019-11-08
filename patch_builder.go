@@ -8,7 +8,7 @@ import (
 type FuncPara struct {
     target    interface{}
     matchers  []Matcher
-    behaviors []ReturnValue
+    behavior  Behavior
 }
 
 type PatchBuilder struct {
@@ -35,8 +35,8 @@ func (this *PatchBuilder) With(matcher ...Matcher) *PatchBuilder {
     return this
 }
 
-func (this *PatchBuilder) Will(behavior ReturnValue) *PatchBuilder {
-    this.funcPara.behaviors = append(this.funcPara.behaviors, behavior)
+func (this *PatchBuilder) Will(behavior Behavior) *PatchBuilder {
+    this.funcPara.behavior = behavior
     return this
 }
 
@@ -51,7 +51,7 @@ func (this *PatchBuilder) End() {
                 panic(info)
             }
         }
-        return getResultValues(funcType, this.funcPara.behaviors[0].rets...)
+        return getResultValues(funcType, this.funcPara.behavior.Apply()[0]...)
     })
     this.patches.applyCore(t, d)
 }
@@ -64,15 +64,44 @@ func Eq(x interface{}) Matcher {
     return &EqMatcher{x: x}
 }
 
-func Return(x ...interface{}) ReturnValue {
-    r := ReturnValue{rets: make([]interface{}, 0)}
-    r.rets = append(r.rets, x...)
+func Return(x ...interface{}) Behavior {
+    r := &ReturnBehavior{rets: make([]Params, 0), params: make(Params, 0)}
+    r.params = append(r.params, x...)
     return r
 }
 
-type ReturnValue struct {
-    rets []interface{}
+func Repeat(behavior Behavior, times int) Behavior {
+    return &RepeatBehavior{rets: make([]Params, 0), behavior: behavior, times: times}
 }
+
+
+type Behavior interface {
+    Apply() []Params
+}
+
+type ReturnBehavior struct {
+    rets []Params
+    params Params
+}
+
+func (this *ReturnBehavior) Apply() []Params {
+    this.rets = append(this.rets, this.params)
+    return this.rets
+}
+
+type RepeatBehavior struct {
+    rets []Params
+    behavior Behavior
+    times int
+}
+
+func (this *RepeatBehavior) Apply() []Params {
+    for i := 0; i < this.times; i++ {
+        this.rets = append(this.rets, this.behavior.Apply()[0])
+    }
+    return this.rets
+}
+
 
 type Matcher interface {
     Matches(x interface{}) bool
