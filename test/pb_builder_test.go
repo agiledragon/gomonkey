@@ -20,6 +20,7 @@ func TestPbBuilderFunc(t *testing.T) {
                 Stubs().
                 With(Eq("zxl"), Any()).
                 Will(Return(true)).
+                Then(Repeat(Return(false), 2)).
                 End()
 
             flag := fake.Belong("zxl", []string{})
