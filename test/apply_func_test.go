@@ -51,7 +51,10 @@ func TestApplyFunc(t *testing.T) {
         })
 
         Convey("input and output param", func() {
-            patches := ApplyFunc(json.Unmarshal, func(_ []byte, v interface{}) error {
+            patches := ApplyFunc(json.Unmarshal, func(data []byte, v interface{}) error {
+                if data == nil {
+                    panic("input param is nil!")
+                }
                 p := v.(*map[int]int)
                 *p = make(map[int]int)
                 (*p)[1] = 2
@@ -60,10 +63,11 @@ func TestApplyFunc(t *testing.T) {
             })
             defer patches.Reset()
             var m map[int]int
-            err := json.Unmarshal(nil, &m)
+            err := json.Unmarshal([]byte("123"), &m)
             So(err, ShouldEqual, nil)
             So(m[1], ShouldEqual, 2)
             So(m[2], ShouldEqual, 4)
         })
     })
 }
+
