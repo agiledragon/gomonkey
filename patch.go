@@ -57,7 +57,7 @@ func NewPatches() *Patches {
 func (this *Patches) ApplyFunc(target, double interface{}) *Patches {
 	t := reflect.ValueOf(target)
 	d := reflect.ValueOf(double)
-	return this.applyCore(t, d)
+	return this.ApplyCore(t, d)
 }
 
 func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double interface{}) *Patches {
@@ -66,7 +66,7 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 		panic("retrieve method by name failed")
 	}
 	d := reflect.ValueOf(double)
-	return this.applyCore(m.Func, d)
+	return this.ApplyCore(m.Func, d)
 }
 
 func (this *Patches) ApplyGlobalVar(target, double interface{}) *Patches {
@@ -95,7 +95,7 @@ func (this *Patches) ApplyFuncSeq(target interface{}, outputs []OutputCell) *Pat
 	funcType := reflect.TypeOf(target)
 	t := reflect.ValueOf(target)
 	d := getDoubleFunc(funcType, outputs)
-	return this.applyCore(t, d)
+	return this.ApplyCore(t, d)
 }
 
 func (this *Patches) ApplyMethodSeq(target reflect.Type, methodName string, outputs []OutputCell) *Patches {
@@ -104,7 +104,7 @@ func (this *Patches) ApplyMethodSeq(target reflect.Type, methodName string, outp
 		panic("retrieve method by name failed")
 	}
 	d := getDoubleFunc(m.Type, outputs)
-	return this.applyCore(m.Func, d)
+	return this.ApplyCore(m.Func, d)
 }
 
 func (this *Patches) ApplyFuncVarSeq(target interface{}, outputs []OutputCell) *Patches {
@@ -132,7 +132,7 @@ func (this *Patches) Reset() {
 	}
 }
 
-func (this *Patches) applyCore(target, double reflect.Value) *Patches {
+func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
 	this.check(target, double)
 	if _, ok := this.originals[target]; ok {
 		panic("patch has been existed")
@@ -189,13 +189,13 @@ func getDoubleFunc(funcType reflect.Type, outputs []OutputCell) reflect.Value {
 	return reflect.MakeFunc(funcType, func(_ []reflect.Value) []reflect.Value {
 		if i < len {
 			i++
-			return getResultValues(funcType, slice[i-1]...)
+			return GetResultValues(funcType, slice[i-1]...)
 		}
 		panic("double seq is less than call seq")
 	})
 }
 
-func getResultValues(funcType reflect.Type, results ...interface{}) []reflect.Value {
+func GetResultValues(funcType reflect.Type, results ...interface{}) []reflect.Value {
 	var resultValues []reflect.Value
 	for i, r := range results {
 		var resultValue reflect.Value
