@@ -1,9 +1,8 @@
-package test
+package dsl_test
 
 import (
     . "github.com/agiledragon/gomonkey"
     . "github.com/agiledragon/gomonkey/dsl"
-    "github.com/agiledragon/gomonkey/test/fake"
     . "github.com/smartystreets/goconvey/convey"
     "testing"
 )
@@ -17,14 +16,14 @@ func TestPbBuilderFunc(t *testing.T) {
             patchBuilder := NewPatchBuilder(patches)
 
             patchBuilder.
-                Func(fake.Belong).
+                Func(Belong).
                 Stubs().
                 With(Eq("zxl"), Any()).
                 Will(Return(true)).
                 Then(Repeat(Return(false), 2)).
                 End()
 
-            flag := fake.Belong("zxl", []string{})
+            flag := Belong("zxl", []string{})
             So(flag, ShouldBeTrue)
 
             defer func() {
@@ -34,7 +33,7 @@ func TestPbBuilderFunc(t *testing.T) {
                     So(str, ShouldEqual, "input paras ddd is not matched")
                 }
             }()
-            fake.Belong("ddd", []string{"abc"})
+            Belong("ddd", []string{"abc"})
         })
 
     })
