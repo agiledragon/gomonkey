@@ -1,8 +1,8 @@
 package dsl_test
 
 import (
-    . "github.com/agiledragon/gomonkey"
-    . "github.com/agiledragon/gomonkey/dsl"
+    . "github.com/henrylee2cn/gomonkey"
+    . "github.com/henrylee2cn/gomonkey/dsl"
     . "github.com/smartystreets/goconvey/convey"
     "testing"
 )

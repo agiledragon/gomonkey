@@ -1,7 +1,7 @@
 package test
 
 import (
-    . "github.com/agiledragon/gomonkey"
+    . "github.com/henrylee2cn/gomonkey"
     . "github.com/smartystreets/goconvey/convey"
     "testing"
 )

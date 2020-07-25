@@ -29,7 +29,7 @@ gomonkey is a library to make monkey patching in unit tests easy.
 
 ## Installation
 ```go
-$ go get github.com/agiledragon/gomonkey
+$ go get github.com/henrylee2cn/gomonkey
 ```
 ## Using gomonkey
 

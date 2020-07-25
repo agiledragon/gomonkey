@@ -1,8 +1,8 @@
 package test
 
 import (
-    . "github.com/agiledragon/gomonkey"
-    "github.com/agiledragon/gomonkey/test/fake"
+    . "github.com/henrylee2cn/gomonkey"
+    "github.com/henrylee2cn/gomonkey/test/fake"
     . "github.com/smartystreets/goconvey/convey"
     "reflect"
     "testing"
@@ -10,7 +10,7 @@ import (
 
 func TestApplyInterfaceReused(t *testing.T) {
     e := &fake.Etcd{}
-    
+
     Convey("TestApplyInterfaceReused", t, func() {
         patches := ApplyFunc(fake.NewDb, func(_ string) fake.Db {
             return e
