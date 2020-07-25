@@ -30,6 +30,38 @@ func Exec(cmd string, args ...string) (string, error) {
 	return string(output), nil
 }
 
+var OutputExpect = "xxx-vethName100-yyy"
+
+func init() {
+	// make sure active
+	m := make(map[int]int)
+	unmarshalDouble([]byte{}, &m)
+	execDouble1("")
+	execDouble2("")
+}
+
+//go:noinline
+func execDouble1(_ string, _ ...string) (string, error) {
+	return OutputExpect, nil
+}
+
+//go:noinline
+func execDouble2(_ string, _ ...string) (string, error) {
+	return "", ErrActual
+}
+
+//go:noinline
+func unmarshalDouble(data []byte, v interface{}) error {
+	if data == nil {
+		panic("input param is nil!")
+	}
+	p := v.(*map[int]int)
+	*p = make(map[int]int)
+	(*p)[1] = 2
+	(*p)[2] = 4
+	return nil
+}
+
 func Belong(points string, lines []string) bool {
 	flag := false
 	for _, line := range lines {
