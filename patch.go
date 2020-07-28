@@ -8,8 +8,9 @@ import (
 )
 
 type Patches struct {
-	originals map[reflect.Value][]byte
-	values map[reflect.Value]reflect.Value
+	originals    map[reflect.Value][]byte
+	values       map[reflect.Value]reflect.Value
+	valueHolders map[reflect.Value]reflect.Value
 }
 
 type Params []interface{}
@@ -47,7 +48,7 @@ func ApplyFuncVarSeq(target interface{}, outputs []OutputCell) *Patches {
 }
 
 func create() *Patches {
-	return &Patches{originals: make(map[reflect.Value][]byte), values: make(map[reflect.Value]reflect.Value)}
+	return &Patches{originals: make(map[reflect.Value][]byte), values: make(map[reflect.Value]reflect.Value), valueHolders: make(map[reflect.Value]reflect.Value)}
 }
 
 func NewPatches() *Patches {
@@ -137,6 +138,8 @@ func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
 	if _, ok := this.originals[target]; ok {
 		panic("patch has been existed")
 	}
+
+	this.valueHolders[double] = double
 	original := replace(*(*uintptr)(getPointer(target)), uintptr(getPointer(double)))
 	this.originals[target] = original
 	return this
