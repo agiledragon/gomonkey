@@ -4,8 +4,8 @@ import (
 	"runtime"
 	"testing"
 
-	. "github.com/agiledragon/gomonkey"
-	"github.com/agiledragon/gomonkey/test/fake"
+	. "github.com/agiledragon/gomonkey/v2"
+	"github.com/agiledragon/gomonkey/v2/test/fake"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

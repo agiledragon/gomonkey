@@ -2,8 +2,9 @@ package dsl
 
 import (
 	"fmt"
-	. "github.com/agiledragon/gomonkey"
 	"reflect"
+
+	. "github.com/agiledragon/gomonkey/v2"
 )
 
 type FuncPara struct {
@@ -62,5 +63,3 @@ func (this *PatchBuilder) End() {
 	})
 	this.patches.ApplyCore(t, d)
 }
-
-

@@ -1,4 +1,4 @@
-module github.com/agiledragon/gomonkey
+module github.com/agiledragon/gomonkey/v2
 
 go 1.14
 
