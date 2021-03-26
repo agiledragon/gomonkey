@@ -13,10 +13,10 @@ TEXT ·mach_vm_protect_trampoline(SB),NOSPLIT,$0
 	MOVQ	SP, BP
 	MOVQ	DI, BX        // BX is caller-save
 	MOVQ	0(BX), DI     // arg 1 targetTask
-    MOVQ	8(BX), SI     // arg 2 address
-    MOVL	16(BX), DX    // arg 3 size
-    MOVL	24(BX), CX    // arg 4 setMaximum
-    MOVL	32(BX), R8    // arg 5 newProtection
+	MOVQ	8(BX), SI     // arg 2 address
+	MOVL	16(BX), DX    // arg 3 size
+	MOVL	24(BX), CX    // arg 4 setMaximum
+	MOVL	32(BX), R8    // arg 5 newProtection
 	CALL	libsystem_mach_vm_protect(SB)
 	MOVQ	AX, 40(BX)    // return value arg6 ret
 	POPQ	BP
