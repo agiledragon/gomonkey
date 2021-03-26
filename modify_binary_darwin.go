@@ -6,31 +6,24 @@ import (
 	"unsafe"
 )
 
-const (
-	_SYS_RWE = syscall.PROT_READ | syscall.PROT_WRITE | syscall.PROT_EXEC
-	_SYS_RW  = syscall.PROT_READ | syscall.PROT_WRITE
-
-	_VM_RWE = 0x17
-	_VM_RW  = 0x13
-)
-
 func modifyBinary(target uintptr, bytes []byte) {
 	function := entryAddress(target, len(bytes))
+
 	page := entryAddress(pageStart(target), syscall.Getpagesize())
-	vmProtect(page, _SYS_RWE, _VM_RWE)
+
+	machVmProtect(page)
 	copy(function, bytes)
-	vmProtect(page, _SYS_RW, _VM_RW)
 }
 
-func vmProtect(page []byte, prot, vmProt int) {
-	err := syscall.Mprotect(page, prot)
+func machVmProtect(page []byte) {
+	err := syscall.Mprotect(page, syscall.PROT_READ|syscall.PROT_WRITE|syscall.PROT_EXEC)
 	if err != nil {
 		panic(err)
 	}
 
-	ret := MachVMProtect(MachTaskSelf(), pageStart(ptrOf(page)), uint64(syscall.Getpagesize()), false, vmProt)
+	ret := MachVMProtect(MachTaskSelf(), pageStart((*reflect.SliceHeader)(unsafe.Pointer(&page)).Data), uint64(syscall.Getpagesize()), uint(0), 0x17)
 	if ret != 0 {
-		panic("vmProtect failed")
+		panic("machVmProtect failed")
 	}
 }
 
@@ -45,32 +38,24 @@ func MachTaskSelf() uint {
 	return args.ret
 }
 
-func ptrOf(val []byte) uintptr {
-	return (*reflect.SliceHeader)(unsafe.Pointer(&val)).Data
-}
-
 //go:cgo_import_dynamic libsystem_mach_vm_protect mach_vm_protect "/usr/lib/libSystem.B.dylib"
 func mach_vm_protect_trampoline()
 
-func MachVMProtect(targetTask uint, address uintptr, size uint64, setMaximum bool, newProt int) int {
-	setMaximumUint := uint(0)
-	if setMaximum {
-		setMaximumUint = uint(1)
-	}
+func MachVMProtect(targetTask uint, address uintptr, size uint64, setMaximum uint, newProtection int) int {
 	args := struct {
-		targetTask uint
-		address    uintptr
-		size       uint64
-		setMaximum uint
-		newProt    int
-		ret        int
+		targetTask    uint
+		address       uintptr
+		size          uint64
+		setMaximum    uint
+		newProtection int
+		ret           int
 	}{
-		targetTask: targetTask,
-		address:    address,
-		size:       size,
-		setMaximum: setMaximumUint,
-		newProt:    newProt,
-		ret:        0,
+		targetTask:    targetTask,
+		address:       address,
+		size:          size,
+		setMaximum:    setMaximum,
+		newProtection: newProtection,
+		ret:           0,
 	}
 	libcCall(unsafe.Pointer(reflect.ValueOf(mach_vm_protect_trampoline).Pointer()), unsafe.Pointer(&args))
 	return args.ret
