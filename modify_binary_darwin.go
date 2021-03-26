@@ -1,19 +1,80 @@
 package gomonkey
 
-import "syscall"
+import (
+	"reflect"
+	"syscall"
+	"unsafe"
+)
+
+const (
+	_SYS_RWE = syscall.PROT_READ | syscall.PROT_WRITE | syscall.PROT_EXEC
+	_SYS_RW  = syscall.PROT_READ | syscall.PROT_WRITE
+
+	_VM_RWE = 0x17
+	_VM_RW  = 0x13
+)
 
 func modifyBinary(target uintptr, bytes []byte) {
-    function := entryAddress(target, len(bytes))
-    
-    page := entryAddress(pageStart(target), syscall.Getpagesize())
-    err := syscall.Mprotect(page, syscall.PROT_READ|syscall.PROT_WRITE|syscall.PROT_EXEC)
-    if err != nil {
-        panic(err)
-    }
-    copy(function, bytes)
-    
-    err = syscall.Mprotect(page, syscall.PROT_READ|syscall.PROT_EXEC)
-    if err != nil {
-        panic(err)
-    }
+	function := entryAddress(target, len(bytes))
+	page := entryAddress(pageStart(target), syscall.Getpagesize())
+	vmProtect(page, _SYS_RWE, _VM_RWE)
+	copy(function, bytes)
+	vmProtect(page, _SYS_RW, _VM_RW)
 }
+
+func vmProtect(page []byte, prot, vmProt int) {
+	err := syscall.Mprotect(page, prot)
+	if err != nil {
+		panic(err)
+	}
+
+	ret := MachVMProtect(MachTaskSelf(), pageStart(ptrOf(page)), uint64(syscall.Getpagesize()), false, vmProt)
+	if ret != 0 {
+		panic("vmProtect failed")
+	}
+}
+
+func MachTaskSelf() uint {
+	args := struct {
+		ret uint
+	}{}
+	libcCall(unsafe.Pointer(reflect.ValueOf(mach_task_self_trampoline).Pointer()), unsafe.Pointer(&args))
+	return args.ret
+}
+
+func ptrOf(val []byte) uintptr {
+	return (*reflect.SliceHeader)(unsafe.Pointer(&val)).Data
+}
+
+func MachVMProtect(targetTask uint, address uintptr, size uint64, setMaximum bool, newProt int) int {
+	setMaximumUint := uint(0)
+	if setMaximum {
+		setMaximumUint = uint(1)
+	}
+	args := struct {
+		targetTask uint
+		address    uintptr
+		size       uint64
+		setMaximum uint
+		newProt    int
+		ret        int
+	}{
+		targetTask: targetTask,
+		address:    address,
+		size:       size,
+		setMaximum: setMaximumUint,
+		newProt:    newProt,
+		ret:        0,
+	}
+	libcCall(unsafe.Pointer(reflect.ValueOf(mach_vm_protect_trampoline).Pointer()), unsafe.Pointer(&args))
+	return args.ret
+}
+
+//go:cgo_import_dynamic libsystem_mach_task_self mach_task_self "/usr/lib/libSystem.B.dylib"
+func mach_task_self_trampoline()
+
+//go:cgo_import_dynamic libsystem_mach_vm_protect mach_vm_protect "/usr/lib/libSystem.B.dylib"
+func mach_vm_protect_trampoline()
+
+//go:linkname libcCall runtime.libcCall
+func libcCall(fn, arg unsafe.Pointer) int32
