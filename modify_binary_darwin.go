@@ -17,8 +17,8 @@ func modifyBinary(target uintptr, bytes []byte) {
 
 func machVmProtect(page []byte) {
 	err := syscall.Mprotect(page, syscall.PROT_READ|syscall.PROT_WRITE|syscall.PROT_EXEC)
-	if err != nil {
-		panic(err)
+	if err == nil {
+		return
 	}
 
 	ret := MachVMProtect(MachTaskSelf(), pageStart((*reflect.SliceHeader)(unsafe.Pointer(&page)).Data), uint64(syscall.Getpagesize()), uint(0), 0x17)
