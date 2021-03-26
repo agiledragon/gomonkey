@@ -34,6 +34,9 @@ func vmProtect(page []byte, prot, vmProt int) {
 	}
 }
 
+//go:cgo_import_dynamic libsystem_mach_task_self mach_task_self "/usr/lib/libSystem.B.dylib"
+func mach_task_self_trampoline()
+
 func MachTaskSelf() uint {
 	args := struct {
 		ret uint
@@ -45,6 +48,9 @@ func MachTaskSelf() uint {
 func ptrOf(val []byte) uintptr {
 	return (*reflect.SliceHeader)(unsafe.Pointer(&val)).Data
 }
+
+//go:cgo_import_dynamic libsystem_mach_vm_protect mach_vm_protect "/usr/lib/libSystem.B.dylib"
+func mach_vm_protect_trampoline()
 
 func MachVMProtect(targetTask uint, address uintptr, size uint64, setMaximum bool, newProt int) int {
 	setMaximumUint := uint(0)
@@ -69,12 +75,6 @@ func MachVMProtect(targetTask uint, address uintptr, size uint64, setMaximum boo
 	libcCall(unsafe.Pointer(reflect.ValueOf(mach_vm_protect_trampoline).Pointer()), unsafe.Pointer(&args))
 	return args.ret
 }
-
-//go:cgo_import_dynamic libsystem_mach_task_self mach_task_self "/usr/lib/libSystem.B.dylib"
-func mach_task_self_trampoline()
-
-//go:cgo_import_dynamic libsystem_mach_vm_protect mach_vm_protect "/usr/lib/libSystem.B.dylib"
-func mach_vm_protect_trampoline()
 
 //go:linkname libcCall runtime.libcCall
 func libcCall(fn, arg unsafe.Pointer) int32
