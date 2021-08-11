@@ -31,6 +31,13 @@ gomonkey is a library to make monkey patching in unit tests easy.
 ```go
 $ go get github.com/agiledragon/gomonkey
 ```
+
+## Test Method
+```go
+$ cd test 
+$ go test -gcflags=all=-l
+```
+
 ## Using gomonkey
 
 Please refer to the test cases as idioms, very complete and detailed.
