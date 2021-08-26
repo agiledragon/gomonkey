@@ -2,6 +2,9 @@
 
 gomonkey is a library to make monkey patching in unit tests easy.
 
+The core idea of monkey patching comes from Bouke.
+You can read [this blogpost](https://bou.ke/blog/monkey-patching-in-go/) for an explanation on how it works.
+
 ## Features
 
 + support a patch for a function
