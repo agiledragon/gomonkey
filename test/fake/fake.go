@@ -127,3 +127,17 @@ func NewDb(style string) Db {
     }
 }
 
+type PrivateMethodStruct struct {
+
+}
+
+func (this *PrivateMethodStruct) ok() bool {
+    return true
+}
+
+func (this *PrivateMethodStruct) Happy() string {
+    if this.ok() {
+        return "happy"
+    }
+    return "unhappy"
+}
