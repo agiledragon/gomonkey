@@ -2,6 +2,7 @@ package gomonkey
 
 import (
 	"fmt"
+	"github.com/agiledragon/gomonkey/myReflect"
 	"reflect"
 	"syscall"
 	"unsafe"
@@ -25,6 +26,10 @@ func ApplyFunc(target, double interface{}) *Patches {
 
 func ApplyMethod(target reflect.Type, methodName string, double interface{}) *Patches {
 	return create().ApplyMethod(target, methodName, double)
+}
+
+func ApplyPrivateMethod(target reflect.Type, methodName string, double interface{}) *Patches {
+	return create().ApplyPrivateMethod(target, methodName, double)
 }
 
 func ApplyGlobalVar(target, double interface{}) *Patches {
@@ -68,6 +73,15 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 	}
 	d := reflect.ValueOf(double)
 	return this.ApplyCore(m.Func, d)
+}
+
+func (this *Patches) ApplyPrivateMethod(target reflect.Type, methodName string, double interface{}) *Patches {
+	m, ok := myReflect.AllMethodByName(target, methodName)
+	if !ok {
+		panic("retrieve method by name failed")
+	}
+	d := reflect.ValueOf(double)
+	return this.ApplyCoreOfPrivateMethod(d, m)
 }
 
 func (this *Patches) ApplyGlobalVar(target, double interface{}) *Patches {
@@ -140,6 +154,20 @@ func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
 		panic("patch has been existed")
 	}
 
+	this.valueHolders[double] = double
+	original := replace(assTarget, uintptr(getPointer(double)))
+	this.originals[assTarget] = original
+	return this
+}
+
+func (this *Patches) ApplyCoreOfPrivateMethod(double reflect.Value, m unsafe.Pointer) *Patches {
+	if double.Kind() != reflect.Func {
+		panic("double is not a func")
+	}
+	assTarget := *(*uintptr)(m)
+	if _, ok := this.originals[assTarget]; ok {
+		panic("patch has been existed")
+	}
 	this.valueHolders[double] = double
 	original := replace(assTarget, uintptr(getPointer(double)))
 	this.originals[assTarget] = original
