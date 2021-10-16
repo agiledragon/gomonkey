@@ -8,7 +8,7 @@ import (
 )
 
 type Patches struct {
-	originals    map[reflect.Value][]byte
+	originals    map[uintptr][]byte
 	values       map[reflect.Value]reflect.Value
 	valueHolders map[reflect.Value]reflect.Value
 }
@@ -48,7 +48,7 @@ func ApplyFuncVarSeq(target interface{}, outputs []OutputCell) *Patches {
 }
 
 func create() *Patches {
-	return &Patches{originals: make(map[reflect.Value][]byte), values: make(map[reflect.Value]reflect.Value), valueHolders: make(map[reflect.Value]reflect.Value)}
+	return &Patches{originals: make(map[uintptr][]byte), values: make(map[reflect.Value]reflect.Value), valueHolders: make(map[reflect.Value]reflect.Value)}
 }
 
 func NewPatches() *Patches {
@@ -124,7 +124,7 @@ func (this *Patches) ApplyFuncVarSeq(target interface{}, outputs []OutputCell) *
 
 func (this *Patches) Reset() {
 	for target, bytes := range this.originals {
-		modifyBinary(*(*uintptr)(getPointer(target)), bytes)
+		modifyBinary(target, bytes)
 		delete(this.originals, target)
 	}
 
@@ -135,13 +135,14 @@ func (this *Patches) Reset() {
 
 func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
 	this.check(target, double)
-	if _, ok := this.originals[target]; ok {
+	assTarget := *(*uintptr)(getPointer(target))
+	if _, ok := this.originals[assTarget]; ok {
 		panic("patch has been existed")
 	}
 
 	this.valueHolders[double] = double
-	original := replace(*(*uintptr)(getPointer(target)), uintptr(getPointer(double)))
-	this.originals[target] = original
+	original := replace(assTarget, uintptr(getPointer(double)))
+	this.originals[assTarget] = original
 	return this
 }
 
