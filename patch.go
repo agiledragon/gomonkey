@@ -81,7 +81,7 @@ func (this *Patches) ApplyPrivateMethod(target reflect.Type, methodName string, 
 		panic("retrieve method by name failed")
 	}
 	d := reflect.ValueOf(double)
-	return this.ApplyCoreOnlyForPrivateMethod(d, m)
+	return this.ApplyCoreOnlyForPrivateMethod(m, d)
 }
 
 func (this *Patches) ApplyGlobalVar(target, double interface{}) *Patches {
@@ -160,11 +160,11 @@ func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
 	return this
 }
 
-func (this *Patches) ApplyCoreOnlyForPrivateMethod(double reflect.Value, m unsafe.Pointer) *Patches {
+func (this *Patches) ApplyCoreOnlyForPrivateMethod(target unsafe.Pointer, double reflect.Value) *Patches {
 	if double.Kind() != reflect.Func {
 		panic("double is not a func")
 	}
-	assTarget := *(*uintptr)(m)
+	assTarget := *(*uintptr)(target)
 	if _, ok := this.originals[assTarget]; ok {
 		panic("patch has been existed")
 	}
