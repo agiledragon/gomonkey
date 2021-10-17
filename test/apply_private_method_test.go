@@ -9,16 +9,8 @@ import (
     . "github.com/smartystreets/goconvey/convey"
 )
 
-type PrivateMethodStruct struct {
-
-}
-
-func (*PrivateMethodStruct) doSomething() bool {
-    return true
-}
-
 func TestApplyPrivate(t *testing.T) {
-	SkipConvey("TestApplyPrivate", t, func() {
+	Convey("TestApplyPrivate", t, func() {
         Convey("patch private method in the different package", func() {
             f := new(fake.PrivateMethodStruct)
             var s *fake.PrivateMethodStruct
