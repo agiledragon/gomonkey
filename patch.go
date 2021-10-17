@@ -2,7 +2,7 @@ package gomonkey
 
 import (
 	"fmt"
-	"github.com/agiledragon/gomonkey/myReflect"
+	myreflect "github.com/agiledragon/gomonkey/v2/reflect"
 	"reflect"
 	"syscall"
 	"unsafe"
@@ -76,12 +76,12 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 }
 
 func (this *Patches) ApplyPrivateMethod(target reflect.Type, methodName string, double interface{}) *Patches {
-	m, ok := myReflect.AllMethodByName(target, methodName)
+	m, ok := myreflect.AllMethodByName(target, methodName)
 	if !ok {
 		panic("retrieve method by name failed")
 	}
 	d := reflect.ValueOf(double)
-	return this.ApplyCoreOfPrivateMethod(d, m)
+	return this.ApplyCoreOnlyForPrivateMethod(d, m)
 }
 
 func (this *Patches) ApplyGlobalVar(target, double interface{}) *Patches {
@@ -160,7 +160,7 @@ func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
 	return this
 }
 
-func (this *Patches) ApplyCoreOfPrivateMethod(double reflect.Value, m unsafe.Pointer) *Patches {
+func (this *Patches) ApplyCoreOnlyForPrivateMethod(double reflect.Value, m unsafe.Pointer) *Patches {
 	if double.Kind() != reflect.Func {
 		panic("double is not a func")
 	}

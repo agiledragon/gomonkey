@@ -1,6 +1,6 @@
 // most code copy from go/src/reflect/type.go
 
-package myReflect
+package reflect
 
 import (
 	"reflect"
