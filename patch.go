@@ -2,7 +2,7 @@ package gomonkey
 
 import (
 	"fmt"
-	myreflect "github.com/agiledragon/gomonkey/v2/reflect"
+	"github.com/agiledragon/gomonkey/v2/creflect"
 	"reflect"
 	"syscall"
 	"unsafe"
@@ -76,7 +76,7 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 }
 
 func (this *Patches) ApplyPrivateMethod(target reflect.Type, methodName string, double interface{}) *Patches {
-	m, ok := myreflect.AllMethodByName(target, methodName)
+	m, ok := creflect.AllMethodByName(target, methodName)
 	if !ok {
 		panic("retrieve method by name failed")
 	}

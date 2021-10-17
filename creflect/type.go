@@ -1,6 +1,6 @@
-// most code copy from go/src/reflect/type.go
+// Customized reflect package for gomonkey，copy most code from go/src/reflect/type.go
 
-package reflect
+package creflect
 
 import (
 	"reflect"
