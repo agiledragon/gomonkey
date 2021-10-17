@@ -132,7 +132,7 @@ type PrivateMethodStruct struct {
 }
 
 func (this *PrivateMethodStruct) ok() bool {
-    return true
+    return this!=nil
 }
 
 func (this *PrivateMethodStruct) Happy() string {
