@@ -76,7 +76,7 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 }
 
 func (this *Patches) ApplyPrivateMethod(target reflect.Type, methodName string, double interface{}) *Patches {
-	m, ok := creflect.AllMethodByName(target, methodName)
+	m, ok := creflect.MethodByName(target, methodName)
 	if !ok {
 		panic("retrieve method by name failed")
 	}

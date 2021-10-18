@@ -38,7 +38,7 @@ type funcValue struct {
 func funcPointer(v reflect.Method, ok bool) (unsafe.Pointer, bool) {
 	return (*funcValue)(unsafe.Pointer(&v.Func)).p, ok
 }
-func AllMethodByName(r reflect.Type, name string) (fn unsafe.Pointer, ok bool) {
+func MethodByName(r reflect.Type, name string) (fn unsafe.Pointer, ok bool) {
 	t := Create(r)
 	if r.Kind() == reflect.Interface {
 		return funcPointer(r.MethodByName(name))
