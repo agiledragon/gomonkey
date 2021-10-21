@@ -143,7 +143,7 @@ func (this *PrivateMethodStruct) Happy() string {
 }
 
 func (this PrivateMethodStruct) haveEaten() bool {
-    return true
+    return this != PrivateMethodStruct{}
 }
 
 func (this PrivateMethodStruct) AreYouHungry() string {
