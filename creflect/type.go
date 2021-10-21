@@ -167,6 +167,12 @@ func (t *rtype) uncommon(r reflect.Type) *uncommonType {
 			u uncommonType
 		}
 		return &(*u)(unsafe.Pointer(t)).u
+	case reflect.Struct:
+		type u struct {
+			interfaceType
+			u uncommonType
+		}
+		return &(*u)(unsafe.Pointer(t)).u
 	default:
 		return nil
 	}

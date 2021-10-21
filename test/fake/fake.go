@@ -1,10 +1,10 @@
 package fake
 
 import (
-    "fmt"
-    "strings"
     "errors"
+    "fmt"
     "os/exec"
+    "strings"
 )
 
 var (
@@ -140,4 +140,16 @@ func (this *PrivateMethodStruct) Happy() string {
         return "happy"
     }
     return "unhappy"
+}
+
+func (this PrivateMethodStruct) haveEaten() bool {
+    return true
+}
+
+func (this PrivateMethodStruct) AreYouHungry() string {
+    if this.haveEaten() {
+        return "I am full"
+    }
+
+    return "I am hungry"
 }
