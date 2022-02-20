@@ -28,6 +28,10 @@ func ApplyMethod(target reflect.Type, methodName string, double interface{}) *Pa
 	return create().ApplyMethod(target, methodName, double)
 }
 
+func ApplyMethodFunc(target reflect.Type, methodName string, doubleFunc interface{}) *Patches {
+	return create().ApplyMethodFunc(target, methodName, doubleFunc)
+}
+
 func ApplyPrivateMethod(target reflect.Type, methodName string, double interface{}) *Patches {
 	return create().ApplyPrivateMethod(target, methodName, double)
 }
@@ -52,6 +56,18 @@ func ApplyFuncVarSeq(target interface{}, outputs []OutputCell) *Patches {
 	return create().ApplyFuncVarSeq(target, outputs)
 }
 
+func ApplyFuncReturn(target interface{}, output ...interface{}) *Patches {
+	return create().ApplyFuncReturn(target, output...)
+}
+
+func ApplyMethodReturn(target interface{}, methodName string, output ...interface{}) *Patches {
+	return create().ApplyMethodReturn(target, methodName, output...)
+}
+
+func ApplyFuncVarReturn(target interface{}, output ...interface{}) *Patches {
+	return create().ApplyFuncVarReturn(target, output...)
+}
+
 func create() *Patches {
 	return &Patches{originals: make(map[uintptr][]byte), values: make(map[reflect.Value]reflect.Value), valueHolders: make(map[reflect.Value]reflect.Value)}
 }
@@ -72,6 +88,15 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 		panic("retrieve method by name failed")
 	}
 	d := reflect.ValueOf(double)
+	return this.ApplyCore(m.Func, d)
+}
+
+func (this *Patches) ApplyMethodFunc(target reflect.Type, methodName string, doubleFunc interface{}) *Patches {
+	m, ok := target.MethodByName(methodName)
+	if !ok {
+		panic("retrieve method by name failed")
+	}
+	d := funcToMethod(m.Type, doubleFunc)
 	return this.ApplyCore(m.Func, d)
 }
 
@@ -132,6 +157,40 @@ func (this *Patches) ApplyFuncVarSeq(target interface{}, outputs []OutputCell) *
 	}
 
 	funcType := reflect.TypeOf(target).Elem()
+	double := getDoubleFunc(funcType, outputs).Interface()
+	return this.ApplyGlobalVar(target, double)
+}
+
+func (this *Patches) ApplyFuncReturn(target interface{}, returns ...interface{}) *Patches {
+	funcType := reflect.TypeOf(target)
+	t := reflect.ValueOf(target)
+	outputs := []OutputCell{{Values: returns, Times: -1}}
+	d := getDoubleFunc(funcType, outputs)
+	return this.ApplyCore(t, d)
+}
+
+func (this *Patches) ApplyMethodReturn(target interface{}, methodName string, returns ...interface{}) *Patches {
+	m, ok := reflect.TypeOf(target).MethodByName(methodName)
+	if !ok {
+		panic("retrieve method by name failed")
+	}
+
+	outputs := []OutputCell{{Values: returns, Times: -1}}
+	d := getDoubleFunc(m.Type, outputs)
+	return this.ApplyCore(m.Func, d)
+}
+
+func (this *Patches) ApplyFuncVarReturn(target interface{}, returns ...interface{}) *Patches {
+	t := reflect.ValueOf(target)
+	if t.Type().Kind() != reflect.Ptr {
+		panic("target is not a pointer")
+	}
+	if t.Elem().Kind() != reflect.Func {
+		panic("target is not a func")
+	}
+
+	funcType := reflect.TypeOf(target).Elem()
+	outputs := []OutputCell{{Values: returns, Times: -1}}
 	double := getDoubleFunc(funcType, outputs).Interface()
 	return this.ApplyGlobalVar(target, double)
 }
@@ -203,8 +262,14 @@ func getDoubleFunc(funcType reflect.Type, outputs []OutputCell) reflect.Value {
 			funcType.NumOut(), len(outputs[0].Values)))
 	}
 
+	needReturn := false
 	slice := make([]Params, 0)
 	for _, output := range outputs {
+		if output.Times == -1 {
+			needReturn = true
+			slice = []Params{output.Values}
+			break
+		}
 		t := 0
 		if output.Times <= 1 {
 			t = 1
@@ -217,9 +282,12 @@ func getDoubleFunc(funcType reflect.Type, outputs []OutputCell) reflect.Value {
 	}
 
 	i := 0
-	len := len(slice)
+	lenOutputs := len(slice)
 	return reflect.MakeFunc(funcType, func(_ []reflect.Value) []reflect.Value {
-		if i < len {
+		if needReturn {
+			return GetResultValues(funcType, slice[0]...)
+		}
+		if i < lenOutputs {
 			i++
 			return GetResultValues(funcType, slice[i-1]...)
 		}
@@ -258,4 +326,15 @@ func entryAddress(p uintptr, l int) []byte {
 
 func pageStart(ptr uintptr) uintptr {
 	return ptr & ^(uintptr(syscall.Getpagesize() - 1))
+}
+
+func funcToMethod(funcType reflect.Type, doubleFunc interface{}) reflect.Value {
+	rf := reflect.TypeOf(doubleFunc)
+	if rf.Kind() != reflect.Func {
+		panic("doubleFunc is not a func")
+	}
+	vf := reflect.ValueOf(doubleFunc)
+	return reflect.MakeFunc(funcType, func(in []reflect.Value) []reflect.Value {
+		return vf.Call(in[1:])
+	})
 }
