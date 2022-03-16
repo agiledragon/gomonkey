@@ -1,7 +1,6 @@
 package test
 
 import (
-	"reflect"
 	"testing"
 
 	. "github.com/agiledragon/gomonkey/v2"
@@ -22,7 +21,7 @@ func TestApplyMethodSeq(t *testing.T) {
 				{Values: Params{info2, nil}},
 				{Values: Params{info3, nil}},
 			}
-			patches := ApplyMethodSeq(reflect.TypeOf(e), "Retrieve", outputs)
+			patches := ApplyMethodSeq(e, "Retrieve", outputs)
 			defer patches.Reset()
 			output, err := e.Retrieve("")
 			So(err, ShouldEqual, nil)
@@ -41,7 +40,7 @@ func TestApplyMethodSeq(t *testing.T) {
 				{Values: Params{"", fake.ErrActual}, Times: 2},
 				{Values: Params{info1, nil}},
 			}
-			patches := ApplyMethodSeq(reflect.TypeOf(e), "Retrieve", outputs)
+			patches := ApplyMethodSeq(e, "Retrieve", outputs)
 			defer patches.Reset()
 			output, err := e.Retrieve("")
 			So(err, ShouldEqual, fake.ErrActual)
@@ -58,7 +57,7 @@ func TestApplyMethodSeq(t *testing.T) {
 				{Values: Params{info1, nil}, Times: 2},
 				{Values: Params{"", fake.ErrActual}},
 			}
-			patches := ApplyMethodSeq(reflect.TypeOf(e), "Retrieve", outputs)
+			patches := ApplyMethodSeq(e, "Retrieve", outputs)
 			defer patches.Reset()
 			output, err := e.Retrieve("")
 			So(err, ShouldEqual, nil)

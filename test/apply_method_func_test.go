@@ -1,7 +1,6 @@
 package test
 
 import (
-	"reflect"
 	"testing"
 
 	. "github.com/agiledragon/gomonkey/v2"
@@ -20,7 +19,7 @@ func TestApplyMethodFunc(t *testing.T) {
 		Convey("for succ", func() {
 			err := slice.Add(1)
 			So(err, ShouldEqual, nil)
-			patches := ApplyMethodFunc(reflect.TypeOf(s), "Add", func(_ int) error {
+			patches := ApplyMethodFunc(s, "Add", func(_ int) error {
 				return nil
 			})
 			defer patches.Reset()
@@ -34,7 +33,7 @@ func TestApplyMethodFunc(t *testing.T) {
 		Convey("for already exist", func() {
 			err := slice.Add(2)
 			So(err, ShouldEqual, nil)
-			patches := ApplyMethodFunc(reflect.TypeOf(s), "Add", func(_ int) error {
+			patches := ApplyMethodFunc(s, "Add", func(_ int) error {
 				return fake.ErrElemExsit
 			})
 			defer patches.Reset()
@@ -49,11 +48,11 @@ func TestApplyMethodFunc(t *testing.T) {
 			err := slice.Add(3)
 			So(err, ShouldEqual, nil)
 			defer slice.Remove(3)
-			patches := ApplyMethodFunc(reflect.TypeOf(s), "Add", func(_ int) error {
+			patches := ApplyMethodFunc(s, "Add", func(_ int) error {
 				return fake.ErrElemExsit
 			})
 			defer patches.Reset()
-			patches.ApplyMethodFunc(reflect.TypeOf(s), "Remove", func(_ int) error {
+			patches.ApplyMethodFunc(s, "Remove", func(_ int) error {
 				return fake.ErrElemNotExsit
 			})
 			err = slice.Add(2)
@@ -72,7 +71,7 @@ func TestApplyMethodFunc(t *testing.T) {
 				return outputExpect, nil
 			})
 			defer patches.Reset()
-			patches.ApplyMethodFunc(reflect.TypeOf(s), "Remove", func(_ int) error {
+			patches.ApplyMethodFunc(s, "Remove", func(_ int) error {
 				return fake.ErrElemNotExsit
 			})
 			output, err := fake.Exec("", "")
