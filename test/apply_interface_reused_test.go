@@ -1,7 +1,6 @@
 package test
 
 import (
-	"reflect"
 	"testing"
 
 	. "github.com/agiledragon/gomonkey/v2"
@@ -21,7 +20,7 @@ func TestApplyInterfaceReused(t *testing.T) {
 
 		Convey("TestApplyInterface", func() {
 			info := "hello interface"
-			patches.ApplyMethod(reflect.TypeOf(e), "Retrieve",
+			patches.ApplyMethod(e, "Retrieve",
 				func(_ *fake.Etcd, _ string) (string, error) {
 					return info, nil
 				})
@@ -39,7 +38,7 @@ func TestApplyInterfaceReused(t *testing.T) {
 				{Values: Params{info2, nil}},
 				{Values: Params{info3, nil}},
 			}
-			patches.ApplyMethodSeq(reflect.TypeOf(e), "Retrieve", outputs)
+			patches.ApplyMethodSeq(e, "Retrieve", outputs)
 			output, err := db.Retrieve("")
 			So(err, ShouldEqual, nil)
 			So(output, ShouldEqual, info1)

@@ -24,15 +24,15 @@ func ApplyFunc(target, double interface{}) *Patches {
 	return create().ApplyFunc(target, double)
 }
 
-func ApplyMethod(target reflect.Type, methodName string, double interface{}) *Patches {
+func ApplyMethod(target interface{}, methodName string, double interface{}) *Patches {
 	return create().ApplyMethod(target, methodName, double)
 }
 
-func ApplyMethodFunc(target reflect.Type, methodName string, doubleFunc interface{}) *Patches {
+func ApplyMethodFunc(target interface{}, methodName string, doubleFunc interface{}) *Patches {
 	return create().ApplyMethodFunc(target, methodName, doubleFunc)
 }
 
-func ApplyPrivateMethod(target reflect.Type, methodName string, double interface{}) *Patches {
+func ApplyPrivateMethod(target interface{}, methodName string, double interface{}) *Patches {
 	return create().ApplyPrivateMethod(target, methodName, double)
 }
 
@@ -48,7 +48,7 @@ func ApplyFuncSeq(target interface{}, outputs []OutputCell) *Patches {
 	return create().ApplyFuncSeq(target, outputs)
 }
 
-func ApplyMethodSeq(target reflect.Type, methodName string, outputs []OutputCell) *Patches {
+func ApplyMethodSeq(target interface{}, methodName string, outputs []OutputCell) *Patches {
 	return create().ApplyMethodSeq(target, methodName, outputs)
 }
 
@@ -82,8 +82,8 @@ func (this *Patches) ApplyFunc(target, double interface{}) *Patches {
 	return this.ApplyCore(t, d)
 }
 
-func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double interface{}) *Patches {
-	m, ok := target.MethodByName(methodName)
+func (this *Patches) ApplyMethod(target interface{}, methodName string, double interface{}) *Patches {
+	m, ok := castRType(target).MethodByName(methodName)
 	if !ok {
 		panic("retrieve method by name failed")
 	}
@@ -91,8 +91,8 @@ func (this *Patches) ApplyMethod(target reflect.Type, methodName string, double 
 	return this.ApplyCore(m.Func, d)
 }
 
-func (this *Patches) ApplyMethodFunc(target reflect.Type, methodName string, doubleFunc interface{}) *Patches {
-	m, ok := target.MethodByName(methodName)
+func (this *Patches) ApplyMethodFunc(target interface{}, methodName string, doubleFunc interface{}) *Patches {
+	m, ok := castRType(target).MethodByName(methodName)
 	if !ok {
 		panic("retrieve method by name failed")
 	}
@@ -100,8 +100,8 @@ func (this *Patches) ApplyMethodFunc(target reflect.Type, methodName string, dou
 	return this.ApplyCore(m.Func, d)
 }
 
-func (this *Patches) ApplyPrivateMethod(target reflect.Type, methodName string, double interface{}) *Patches {
-	m, ok := creflect.MethodByName(target, methodName)
+func (this *Patches) ApplyPrivateMethod(target interface{}, methodName string, double interface{}) *Patches {
+	m, ok := creflect.MethodByName(castRType(target), methodName)
 	if !ok {
 		panic("retrieve method by name failed")
 	}
@@ -138,8 +138,8 @@ func (this *Patches) ApplyFuncSeq(target interface{}, outputs []OutputCell) *Pat
 	return this.ApplyCore(t, d)
 }
 
-func (this *Patches) ApplyMethodSeq(target reflect.Type, methodName string, outputs []OutputCell) *Patches {
-	m, ok := target.MethodByName(methodName)
+func (this *Patches) ApplyMethodSeq(target interface{}, methodName string, outputs []OutputCell) *Patches {
+	m, ok := castRType(target).MethodByName(methodName)
 	if !ok {
 		panic("retrieve method by name failed")
 	}
@@ -337,4 +337,11 @@ func funcToMethod(funcType reflect.Type, doubleFunc interface{}) reflect.Value {
 	return reflect.MakeFunc(funcType, func(in []reflect.Value) []reflect.Value {
 		return vf.Call(in[1:])
 	})
+}
+
+func castRType(val interface{}) reflect.Type {
+	if rTypeVal, ok := val.(reflect.Type); ok {
+		return rTypeVal
+	}
+	return reflect.TypeOf(val)
 }
