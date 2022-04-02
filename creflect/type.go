@@ -35,6 +35,7 @@ type funcValue struct {
 	_ uintptr
 	p unsafe.Pointer
 }
+
 func funcPointer(v reflect.Method, ok bool) (unsafe.Pointer, bool) {
 	return (*funcValue)(unsafe.Pointer(&v.Func)).p, ok
 }
@@ -84,6 +85,7 @@ func (t *rtype) nameOff(off nameOff) name {
 const (
 	tflagUncommon tflag = 1 << 0
 )
+
 // uncommonType is present only for defined types or types with methods
 type uncommonType struct {
 	pkgPath nameOff // import path; empty for built-in types like int, string
@@ -122,26 +124,9 @@ type imethod struct {
 	typ  typeOff // .(*FuncType) underneath
 }
 
-// name is an encoded type name with optional extra data.
-type name struct {
-	bytes *byte
-}
-
 type String struct {
 	Data unsafe.Pointer
 	Len  int
-}
-
-func (n name) name() (s string) {
-	if n.bytes == nil {
-		return
-	}
-	b := (*[4]byte)(unsafe.Pointer(n.bytes))
-
-	hdr := (*String)(unsafe.Pointer(&s))
-	hdr.Data = unsafe.Pointer(&b[3])
-	hdr.Len = int(b[1])<<8 | int(b[2])
-	return s
 }
 
 func (t *rtype) uncommon(r reflect.Type) *uncommonType {
