@@ -82,5 +82,18 @@ func TestApplyMethodFunc(t *testing.T) {
 			So(len(slice), ShouldEqual, 1)
 			So(slice[0], ShouldEqual, 4)
 		})
+
+		Convey("for variadic method", func() {
+			slice = fake.NewSlice()
+			count := slice.Append(1, 2, 3)
+			So(count, ShouldEqual, 3)
+			patches := ApplyMethodFunc(s, "Append", func(_ ...int) int {
+				return 0
+			})
+			defer patches.Reset()
+			count = slice.Append(4, 5, 6)
+			So(count, ShouldEqual, 0)
+			So(len(slice), ShouldEqual, 3)
+		})
 	})
 }

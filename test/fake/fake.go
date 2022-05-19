@@ -88,6 +88,12 @@ func (this* Slice) Remove(elem int) error {
     return nil
 }
 
+func (this *Slice) Append(elems ...int) int {
+    *this = append(*this, elems...)
+    fmt.Printf("Slice: Append elem: %v succ\n", elems)
+    return len(elems)
+}
+
 func ReadLeaf(url string) (string, error) {
     output := fmt.Sprintf("%s, %s!", "Hello", "World")
     return output, nil
