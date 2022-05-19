@@ -2,10 +2,11 @@ package gomonkey
 
 import (
 	"fmt"
-	"github.com/agiledragon/gomonkey/v2/creflect"
 	"reflect"
 	"syscall"
 	"unsafe"
+
+	"github.com/agiledragon/gomonkey/v2/creflect"
 )
 
 type Patches struct {
@@ -335,7 +336,11 @@ func funcToMethod(funcType reflect.Type, doubleFunc interface{}) reflect.Value {
 	}
 	vf := reflect.ValueOf(doubleFunc)
 	return reflect.MakeFunc(funcType, func(in []reflect.Value) []reflect.Value {
-		return vf.Call(in[1:])
+		if funcType.IsVariadic() {
+			return vf.CallSlice(in[1:])
+		} else {
+			return vf.Call(in[1:])
+		}
 	})
 }
 
