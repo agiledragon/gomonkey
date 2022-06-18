@@ -69,5 +69,26 @@ func TestApplyFunc(t *testing.T) {
 			So(m[1], ShouldEqual, 2)
 			So(m[2], ShouldEqual, 4)
 		})
+
+		Convey("repeat patch same func", func() {
+			patches := ApplyFunc(fake.ReadLeaf, func(_ string) (string, error) {
+				return "patch1", nil
+			})
+			output, err := fake.ReadLeaf("")
+			So(err, ShouldEqual, nil)
+			So(output, ShouldEqual, "patch1")
+
+			patches.ApplyFunc(fake.ReadLeaf, func(_ string) (string, error) {
+				return "patch2", nil
+			})
+			output, err = fake.ReadLeaf("")
+			So(err, ShouldEqual, nil)
+			So(output, ShouldEqual, "patch2")
+
+			patches.Reset()
+			output, err = fake.ReadLeaf("")
+			So(err, ShouldEqual, nil)
+			So(output, ShouldEqual, "Hello, World!")
+		})
 	})
 }
