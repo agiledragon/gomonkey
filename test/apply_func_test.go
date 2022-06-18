@@ -90,5 +90,35 @@ func TestApplyFunc(t *testing.T) {
 			So(err, ShouldEqual, nil)
 			So(output, ShouldEqual, "Hello, World!")
 		})
+
+		Convey("declare partial args", func() {
+			patches := ApplyFunc(fake.Exec, func() (string, error) {
+				return outputExpect, nil
+			})
+			defer patches.Reset()
+			output, err := fake.Exec("", "")
+			So(err, ShouldEqual, nil)
+			So(output, ShouldEqual, outputExpect)
+
+			patches.ApplyFunc(fake.Exec, func(_ string) (string, error) {
+				return outputExpect, nil
+			})
+			output, err = fake.Exec("", "")
+			So(err, ShouldEqual, nil)
+			So(output, ShouldEqual, outputExpect)
+
+			So(func() {
+				patches.ApplyFunc(fake.Exec, func(_ string, _ []string) (string, error) {
+					return outputExpect, nil
+				})
+			}, ShouldPanic)
+
+			patches.ApplyFunc(fake.Exec, func(_ string, _ ...string) (string, error) {
+				return outputExpect, nil
+			})
+			output, err = fake.Exec("", "")
+			So(err, ShouldEqual, nil)
+			So(output, ShouldEqual, outputExpect)
+		})
 	})
 }

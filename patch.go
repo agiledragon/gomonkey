@@ -240,7 +240,23 @@ func (this *Patches) check(target, double reflect.Value) {
 		panic("double is not a func")
 	}
 
-	if target.Type() != double.Type() {
+	targetType := target.Type()
+	doubleType := double.Type()
+
+	if targetType.NumIn() < doubleType.NumIn() ||
+		targetType.NumOut() != doubleType.NumOut() ||
+		(targetType.NumIn() == doubleType.NumIn() && targetType.IsVariadic() != doubleType.IsVariadic()) {
+		panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
+	}
+
+	for i, size := 0, doubleType.NumIn(); i < size; i++ {
+		targetIn := targetType.In(i)
+		doubleIn := doubleType.In(i)
+
+		if targetIn.AssignableTo(doubleIn) {
+			continue
+		}
+
 		panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
 	}
 }
