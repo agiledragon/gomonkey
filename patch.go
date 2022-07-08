@@ -210,13 +210,11 @@ func (this *Patches) Reset() {
 func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
 	this.check(target, double)
 	assTarget := *(*uintptr)(getPointer(target))
-	if _, ok := this.originals[assTarget]; ok {
-		panic("patch has been existed")
-	}
-
-	this.valueHolders[double] = double
 	original := replace(assTarget, uintptr(getPointer(double)))
-	this.originals[assTarget] = original
+	if _, ok := this.originals[assTarget]; !ok {
+		this.originals[assTarget] = original
+	}
+	this.valueHolders[double] = double
 	return this
 }
 
@@ -225,12 +223,11 @@ func (this *Patches) ApplyCoreOnlyForPrivateMethod(target unsafe.Pointer, double
 		panic("double is not a func")
 	}
 	assTarget := *(*uintptr)(target)
-	if _, ok := this.originals[assTarget]; ok {
-		panic("patch has been existed")
+	original := replace(assTarget, uintptr(getPointer(double)))
+	if _, ok := this.originals[assTarget]; !ok {
+		this.originals[assTarget] = original
 	}
 	this.valueHolders[double] = double
-	original := replace(assTarget, uintptr(getPointer(double)))
-	this.originals[assTarget] = original
 	return this
 }
 
@@ -243,7 +240,23 @@ func (this *Patches) check(target, double reflect.Value) {
 		panic("double is not a func")
 	}
 
-	if target.Type() != double.Type() {
+	targetType := target.Type()
+	doubleType := double.Type()
+
+	if targetType.NumIn() < doubleType.NumIn() ||
+		targetType.NumOut() != doubleType.NumOut() ||
+		(targetType.NumIn() == doubleType.NumIn() && targetType.IsVariadic() != doubleType.IsVariadic()) {
+		panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
+	}
+
+	for i, size := 0, doubleType.NumIn(); i < size; i++ {
+		targetIn := targetType.In(i)
+		doubleIn := doubleType.In(i)
+
+		if targetIn.AssignableTo(doubleIn) {
+			continue
+		}
+
 		panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
 	}
 }
