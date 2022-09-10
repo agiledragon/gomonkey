@@ -1,6 +1,7 @@
 package dsl_test
 
 import (
+	. "github.com/agiledragon/gomonkey/v2/test/fake"
 	"testing"
 
 	. "github.com/agiledragon/gomonkey/v2"
