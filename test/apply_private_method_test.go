@@ -1,11 +1,13 @@
 package test
 
 import (
-	"github.com/agiledragon/gomonkey/v2/test/fake"
 	"testing"
 
-	. "github.com/agiledragon/gomonkey/v2"
+	"github.com/agiledragon/gomonkey/v2/test/fake"
+
 	. "github.com/smartystreets/goconvey/convey"
+
+	. "github.com/agiledragon/gomonkey/v2"
 )
 
 func TestApplyPrivateMethod(t *testing.T) {
@@ -24,11 +26,11 @@ func TestApplyPrivateMethod(t *testing.T) {
 		Convey("patch private value method in the different package", func() {
 			s := fake.PrivateMethodStruct{}
 			patches := ApplyPrivateMethod(s, "haveEaten", func(_ fake.PrivateMethodStruct) bool {
-				return false
+				return true
 			})
 			defer patches.Reset()
 			result := s.AreYouHungry()
-			So(result, ShouldEqual, "I am hungry")
+			So(result, ShouldEqual, "I am full")
 		})
 
 		Convey("repeat patch same method", func() {
