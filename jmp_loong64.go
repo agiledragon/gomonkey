@@ -1,3 +1,6 @@
+//go:build loong64
+// +build loong64
+
 package gomonkey
 
 import "unsafe"
