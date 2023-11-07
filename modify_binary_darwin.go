@@ -4,7 +4,7 @@ import "syscall"
 
 func modifyBinary(target uintptr, bytes []byte) {
 	function := entryAddress(target, len(bytes))
-	err := mprotectCrossPage(target, len(bytes), syscall.PROT_READ|syscall.PROT_WRITE|syscall.PROT_EXEC)
+	err := mprotectCrossPage(target, len(bytes), syscall.PROT_READ|syscall.PROT_WRITE)
 	if err != nil {
 		panic(err)
 	}
