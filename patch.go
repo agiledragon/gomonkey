@@ -259,6 +259,17 @@ func (this *Patches) check(target, double reflect.Value) {
 
 		panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
 	}
+
+	for i, size := 0, doubleType.NumOut(); i < size; i++ {
+		targetOut := targetType.Out(i)
+		doubleOut := doubleType.Out(i)
+
+		if targetOut.AssignableTo(doubleOut) {
+			continue
+		}
+
+		panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
+	}
 }
 
 func replace(target, double uintptr) []byte {
