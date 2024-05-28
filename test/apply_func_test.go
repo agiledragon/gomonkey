@@ -26,6 +26,32 @@ func TestApplyFunc(t *testing.T) {
 			So(output, ShouldEqual, outputExpect)
 		})
 
+		Convey("one func for succ with origin", func() {
+			patches := ApplyFunc(fake.Belong, func(_ string, _ []string) bool {
+				return false
+			})
+			defer patches.Reset()
+			output := fake.Belong("a", []string{"a", "b"})
+			So(output, ShouldEqual, false)
+			patches.Origin(func() {
+				output = fake.Belong("a", []string{"a", "b"})
+			})
+			So(output, ShouldEqual, true)
+		})
+
+		Convey("one func for succ with origin inside", func() {
+			var output bool
+			var patches *Patches
+			patches = ApplyFunc(fake.Belong, func(_ string, _ []string) bool {
+				patches.Origin(func() {
+					output = fake.Belong("a", []string{"a", "b"})
+					So(output, ShouldEqual, true)
+				})
+				return false
+			})
+			defer patches.Reset()
+		})
+
 		Convey("one func for fail", func() {
 			patches := ApplyFunc(fake.Exec, func(_ string, _ ...string) (string, error) {
 				return "", fake.ErrActual
@@ -49,6 +75,27 @@ func TestApplyFunc(t *testing.T) {
 			So(output, ShouldEqual, outputExpect)
 			flag := fake.Belong("", nil)
 			So(flag, ShouldBeTrue)
+		})
+
+		Convey("two funcs with origin", func() {
+			patches := ApplyFunc(fake.Exec, func(_ string, _ ...string) (string, error) {
+				return outputExpect, nil
+			})
+			defer patches.Reset()
+			patches.ApplyFunc(fake.Belong, func(_ string, _ []string) bool {
+				return true
+			})
+			output, err := fake.Exec("", "")
+			So(err, ShouldEqual, nil)
+			So(output, ShouldEqual, outputExpect)
+			flag := fake.Belong("", nil)
+			So(flag, ShouldBeTrue)
+
+			var outputBool bool
+			patches.Origin(func() {
+				outputBool = fake.Belong("c", []string{"a", "b"})
+			})
+			So(outputBool, ShouldEqual, false)
 		})
 
 		Convey("input and output param", func() {
