@@ -30,6 +30,24 @@ func TestApplyMethodFunc(t *testing.T) {
 			So(len(slice), ShouldEqual, 0)
 		})
 
+		Convey("for origin", func() {
+			patches := ApplyMethodFunc(s, "Add", func(_ int) error {
+				return nil
+			})
+			defer patches.Reset()
+
+			var err error
+			patches.Origin(func() {
+				err = slice.Add(1)
+				So(err, ShouldEqual, nil)
+				err = slice.Add(1)
+				So(err, ShouldEqual, fake.ErrElemExsit)
+				err = slice.Remove(1)
+				So(err, ShouldEqual, nil)
+			})
+			So(len(slice), ShouldEqual, 0)
+		})
+
 		Convey("for already exist", func() {
 			err := slice.Add(2)
 			So(err, ShouldEqual, nil)
