@@ -3,13 +3,13 @@ package test
 import (
 	"testing"
 
-	. "github.com/agiledragon/gomonkey/v2"
-	"github.com/agiledragon/gomonkey/v2/test/fake"
+	. "github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/test/fake"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 /*
-  compare with apply_func_var_seq_test.go
+compare with apply_func_var_seq_test.go
 */
 func TestApplyFuncVarReturn(t *testing.T) {
 	Convey("TestApplyFuncVarReturn", t, func() {

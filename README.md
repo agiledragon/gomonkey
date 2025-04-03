@@ -40,7 +40,7 @@ $ go get github.com/agiledragon/gomonkey@v2.0.2
 ```
 - v2.1.0 and above, for example v2.11.0
 ```go
-$ go get github.com/agiledragon/gomonkey/v2@v2.11.0
+$ go get github.com/agiledragon/gomonkey@v2.11.0
 ```
 
 ## Test Method

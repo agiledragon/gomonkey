@@ -3,10 +3,10 @@ package dsltest
 import (
 	"testing"
 
-	. "github.com/agiledragon/gomonkey/v2/test/fake"
+	. "github.com/agiledragon/gomonkey/test/fake"
 
-	. "github.com/agiledragon/gomonkey/v2"
-	. "github.com/agiledragon/gomonkey/v2/dsl"
+	. "github.com/agiledragon/gomonkey"
+	. "github.com/agiledragon/gomonkey/dsl"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

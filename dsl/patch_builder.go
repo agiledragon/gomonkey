@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	. "github.com/agiledragon/gomonkey/v2"
+	. "github.com/agiledragon/gomonkey"
 )
 
 type FuncPara struct {

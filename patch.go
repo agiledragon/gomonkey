@@ -6,7 +6,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/agiledragon/gomonkey/v2/creflect"
+	"github.com/agiledragon/gomonkey/creflect"
 )
 
 type Patches struct {
