@@ -56,6 +56,11 @@ PROTECT_OK:
     MOVD    pageSize+32(FP), R1
     MOVD    oriProt+40(FP), R2
     SVC     $0x80
+    MOVD    R0, R27           // Save return value of mprotect
+    MOVD    target+0(FP), R0  // Arg1: start address
+    MOVD    len+16(FP), R1    // Arg2: length
+    CALL    sys_icache_invalidate(SB)
+    MOVD    R27, R0           // Restore return value
     B       RETURN
     NOP16384
 RETURN:
