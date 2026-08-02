@@ -3,9 +3,25 @@ package gomonkey
 import (
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 	"testing"
 )
+
+func TestValidateWritePageSize(t *testing.T) {
+	if err := validateWritePageSize(writeIsolationSize); err != nil {
+		t.Fatalf("supported page size was rejected: %v", err)
+	}
+
+	unsupported := writeIsolationSize * 2
+	err := validateWritePageSize(unsupported)
+	if err == nil {
+		t.Fatalf("page size %d should be rejected", unsupported)
+	}
+	if !strings.Contains(err.Error(), "unsupported system page size") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
 
 // A 24-byte jmp patch that begins close to the end of a page must make both
 // the current and the next page writable, otherwise writing it triggers SIGBUS

@@ -12,12 +12,29 @@ func PtrOf(val []byte) uintptr {
 }
 
 func modifyBinary(target uintptr, bytes []byte) {
+	pageSize := syscall.Getpagesize()
+	if err := validateWritePageSize(pageSize); err != nil {
+		panic(err)
+	}
+
 	targetPage := pageStart(target)
 	res := write(target, PtrOf(bytes), len(bytes), targetPage,
 		protectSize(target, len(bytes)), syscall.PROT_READ|syscall.PROT_EXEC)
 	if res != 0 {
 		panic(fmt.Errorf("failed to write memory, code %v", res))
 	}
+}
+
+// validateWritePageSize ensures that write's static assembly padding is wide
+// enough to keep its executable instructions outside the page being modified.
+// Without this check, a larger page size could make write remove execute
+// permission from its own current page and terminate the process with SIGBUS.
+func validateWritePageSize(pageSize int) error {
+	if pageSize > writeIsolationSize {
+		return fmt.Errorf("unsupported system page size %d: write isolation supports at most %d bytes",
+			pageSize, writeIsolationSize)
+	}
+	return nil
 }
 
 // protectSize returns the number of bytes that must be made writable so that a

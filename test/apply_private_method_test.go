@@ -54,3 +54,24 @@ func TestApplyPrivateMethod(t *testing.T) {
 	})
 
 }
+
+func TestApplyPrivateMethodWithClosure(t *testing.T) {
+	Convey("patch private method with a closure", t, func() {
+		f := new(fake.PrivateMethodStruct)
+		var s *fake.PrivateMethodStruct
+		patchedResult := false
+		patches := ApplyPrivateMethod(s, "ok", func(_ *fake.PrivateMethodStruct) bool {
+			return patchedResult
+		})
+		defer patches.Reset()
+
+		So(f.Happy(), ShouldEqual, "unhappy")
+
+		var originResult string
+		patches.Origin(func() {
+			originResult = f.Happy()
+		})
+		So(originResult, ShouldEqual, "happy")
+		So(f.Happy(), ShouldEqual, "unhappy")
+	})
+}
