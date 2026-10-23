@@ -5,8 +5,26 @@ package gomonkey
 
 import (
 	"encoding/binary"
+	"reflect"
+	"runtime"
 	"testing"
 )
+
+func TestCorePatchUsesArm64Trampoline(t *testing.T) {
+	target := reflect.ValueOf(func() {}).Pointer()
+	double := reflect.ValueOf(func() {})
+	code, trampoline := buildCorePatchDirective(target, uintptr(getPointer(double)), 0)
+	if len(code) != 4 {
+		t.Fatalf("core patch length = %d, want one 4-byte branch", len(code))
+	}
+	if trampoline == 0 {
+		t.Fatal("core patch did not allocate a trampoline")
+	}
+	defer releaseCorePatchTrampoline(trampoline)
+	if runtime.FuncForPC(trampoline) == nil {
+		t.Fatal("trampoline is not in Go runtime function metadata")
+	}
+}
 
 func TestBuildArm64BranchDirective(t *testing.T) {
 	from := uintptr(0x100000000)

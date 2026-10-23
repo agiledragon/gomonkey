@@ -93,7 +93,10 @@ func (this *Patches) Origin(fn func()) {
 	}
 	fn()
 	for target, targetPtr := range this.targets {
-		code := buildJmpDirective(targetPtr)
+		code, trampoline := buildCorePatchDirective(target, targetPtr, this.privateTargetTrampolines[target])
+		if trampoline != 0 {
+			this.privateTargetTrampolines[target] = trampoline
+		}
 		modifyBinary(target, code)
 	}
 	for target, code := range this.privateTargets {
@@ -231,7 +234,7 @@ func (this *Patches) Reset() {
 	}
 
 	for target, trampoline := range this.privateTargetTrampolines {
-		releasePrivateMethodTrampoline(trampoline)
+		releaseCorePatchTrampoline(trampoline)
 		delete(this.privateTargetTrampolines, target)
 		delete(this.privateTargets, target)
 	}
@@ -240,11 +243,16 @@ func (this *Patches) Reset() {
 func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
 	this.check(target, double)
 	assTarget := *(*uintptr)(getPointer(target))
-	original := replace(assTarget, uintptr(getPointer(double)))
+	doublePointer := uintptr(getPointer(double))
+	code, trampoline := buildCorePatchDirective(assTarget, doublePointer, this.privateTargetTrampolines[assTarget])
+	original := replaceByCode(assTarget, code)
+	if trampoline != 0 {
+		this.privateTargetTrampolines[assTarget] = trampoline
+	}
 	if _, ok := this.originals[assTarget]; !ok {
 		this.originals[assTarget] = original
 	}
-	this.targets[assTarget] = uintptr(getPointer(double))
+	this.targets[assTarget] = doublePointer
 	this.valueHolders[double] = double
 	return this
 }
@@ -307,10 +315,6 @@ func (this *Patches) check(target, double reflect.Value) {
 
 		panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
 	}
-}
-
-func replace(target, double uintptr) []byte {
-	return replaceByCode(target, buildJmpDirective(double))
 }
 
 func replaceByCode(target uintptr, code []byte) []byte {
